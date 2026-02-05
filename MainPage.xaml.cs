@@ -8,10 +8,10 @@ namespace ShelterManager;
 
 public partial class MainPage : ContentPage
 {
-    // Główna kolekcja danych
+    // Główna kolekcja danych (baza w pamięci)
     public ObservableCollection<Zwierze> Zwierzeta { get; } = new();
-    
-    // Kolekcja dla UI obsługująca filtrowanie
+
+    // Kolekcja dla UI (to, co widzi użytkownik - może być przefiltrowane)
     public ObservableCollection<Zwierze> FiltrowaneZwierzeta { get; set; } = new();
 
     private readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "shelter_data.json");
@@ -23,42 +23,45 @@ public partial class MainPage : ContentPage
 
         WczytajDane();
 
-        // Dane startowe generowane tylko przy pierwszym uruchomieniu
+        // Dane startowe (tylko przy pierwszym uruchomieniu aplikacji w ogóle)
         if (Zwierzeta.Count == 0)
         {
             Zwierzeta.Add(new Zwierze { Imie = "Burek", Rasa = "Owczarek", Status = "Kwarantanna", Zdjecie = "https://loremflickr.com/400/400/dog,owczarek?lock=1" });
             Zwierzeta.Add(new Zwierze { Imie = "Mruczek", Rasa = "Dachowiec", Status = "Kwarantanna", Zdjecie = "https://loremflickr.com/400/400/cat,dachowiec?lock=2" });
+            Zwierzeta.Add(new Zwierze { Imie = "Reksio", Rasa = "Labrador", Status = "Do adopcji", Zdjecie = "https://loremflickr.com/400/400/dog,labrador?lock=3" });
             ZapiszDane();
             AktualizujWidok();
         }
 
-        // Rejestracja komunikatów dla dodawania nowych zwierząt
+        // --- OBSŁUGA KOMUNIKATÓW (MESSENGER) ---
+
+        // 1. Gdy dodano nowego zwierzaka (z AddAnimalPage)
         WeakReferenceMessenger.Default.Register<Zwierze>(this, (r, m) =>
         {
-            MainThread.BeginInvokeOnMainThread(() => {
+            Dispatcher.Dispatch(() =>
+            {
                 Zwierzeta.Add(m);
                 ZapiszDane();
                 AktualizujWidok();
             });
         });
 
-        // Rejestracja komunikatów dla zapisu po edycji
+        // 2. Gdy edytowano zwierzaka i trzeba odświeżyć listę
         WeakReferenceMessenger.Default.Register<string>(this, (r, m) =>
         {
             if (m == "ZapiszMnie")
             {
-                ZapiszDane(); 
-                MainThread.BeginInvokeOnMainThread(async () => 
+                // Dispatcher zapewnia bezpieczne odświeżenie UI bez "Task.Delay"
+                Dispatcher.Dispatch(() =>
                 {
-                    await Task.Delay(200); // Krótka pauza na stabilizację UI
-                    try { AktualizujWidok(); }
-                    catch (Exception ex) { Debug.WriteLine(ex.Message); }
+                    ZapiszDane();
+                    AktualizujWidok();
                 });
             }
         });
     }
 
-    // Obsługa wyszukiwarki (Punkt 10 założeń - Filtrowanie)
+    // Obsługa wyszukiwarki
     private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
     {
         string fraza = e.NewTextValue?.ToLower() ?? "";
@@ -72,46 +75,47 @@ public partial class MainPage : ContentPage
             var wyniki = Zwierzeta.Where(z => z.Imie.ToLower().Contains(fraza)).ToList();
             FiltrowaneZwierzeta = new ObservableCollection<Zwierze>(wyniki);
         }
-        OnPropertyChanged(nameof(FiltrowaneZwierzeta)); // Odświeżenie zbindowanej listy
+        OnPropertyChanged(nameof(FiltrowaneZwierzeta)); // Ważne: powiadamia UI o zmianie listy
     }
 
+    // Główna metoda odświeżająca liczniki i listę
     private void AktualizujWidok()
     {
-        // Aktualizacja liczników na Dashboardzie
-        if (LblTotalAnimals != null) 
+        // 1. Aktualizacja liczników (Dashboard)
+        if (LblTotalAnimals != null)
             LblTotalAnimals.Text = Zwierzeta.Count.ToString();
 
         if (LblInQuarantine != null)
             LblInQuarantine.Text = Zwierzeta.Count(z => z.Status == "Kwarantanna").ToString();
 
-        // Odświeżenie listy z uwzględnieniem aktualnego filtra
+        // 2. Odświeżenie listy (z uwzględnieniem wpisanego tekstu w szukajce)
         string obecnyTekst = SearchBarZwierzeta?.Text ?? "";
         OnSearchTextChanged(this, new TextChangedEventArgs("", obecnyTekst));
     }
 
-    private async void OnAddClicked(object sender, EventArgs e) 
+    // Nawigacja do dodawania
+    private async void OnAddClicked(object sender, EventArgs e)
         => await Navigation.PushAsync(new AddAnimalPage());
 
+    // Nawigacja do edycji (kliknięcie w kartę)
     private async void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (e.CurrentSelection.FirstOrDefault() is Zwierze wybraneZwierze)
         {
             await Navigation.PushAsync(new EditAnimalPage(wybraneZwierze));
-            if (sender is CollectionView cv) cv.SelectedItem = null;
+            if (sender is CollectionView cv) cv.SelectedItem = null; // Odznaczamy element
         }
     }
 
-    // ZABEZPIECZENIE ROLI (Punkt 8 założeń)
+    // Usuwanie (Tylko dla Admina)
     private async void OnDeleteClicked(object sender, EventArgs e)
     {
-        // Sprawdzenie, czy użytkownik ma rolę Admina zapisaną podczas logowania
         if (LoginPage.RolaUzytkownika != "Admin")
         {
             await DisplayAlert("Brak uprawnień", "Tylko Administrator może usuwać zwierzęta z bazy danych!", "OK");
             return;
         }
 
-        // Logika usuwania dostępna tylko dla Admina
         if (sender is MenuFlyoutItem menu && menu.CommandParameter is Zwierze zwierz)
         {
             bool potwierdzenie = await DisplayAlert("Potwierdzenie", $"Czy na pewno chcesz trwale usunąć: {zwierz.Imie}?", "Tak", "Nie");
@@ -124,21 +128,27 @@ public partial class MainPage : ContentPage
         }
     }
 
+    // Zapis do pliku JSON
     private void ZapiszDane()
     {
-        try {
+        try
+        {
             var json = JsonConvert.SerializeObject(Zwierzeta);
             File.WriteAllText(filePath, json);
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             Debug.WriteLine($"Błąd zapisu: {ex.Message}");
         }
     }
 
+    // Odczyt z pliku JSON
     private void WczytajDane()
     {
         if (File.Exists(filePath))
         {
-            try {
+            try
+            {
                 var json = File.ReadAllText(filePath);
                 var wczytane = JsonConvert.DeserializeObject<ObservableCollection<Zwierze>>(json);
                 if (wczytane != null)
@@ -146,7 +156,9 @@ public partial class MainPage : ContentPage
                     Zwierzeta.Clear();
                     foreach (var z in wczytane) Zwierzeta.Add(z);
                 }
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 Debug.WriteLine($"Błąd wczytywania: {ex.Message}");
             }
         }

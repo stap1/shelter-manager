@@ -4,114 +4,113 @@
              xmlns:models="clr-namespace:ShelterManager.Models"
              x:Class="ShelterManager.CagesPage"
              Title="Klatki"
-             BackgroundColor="#F2F5F8">
+             BackgroundColor="#F4F7FA">
 
-    <Grid RowDefinitions="Auto, *">
+    <Grid MaximumWidthRequest="1000" HorizontalOptions="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <VerticalStackLayout Grid.Row="0" Margin="0,20,0,20" Spacing="5">
+        <VerticalStackLayout Grid.Row="0" Margin="0,30,0,25" Spacing="8">
             <Label Text="KLATKI I BOKSY" 
-                   FontSize="28" 
+                   FontSize="32" 
                    FontAttributes="Bold" 
-                   TextColor="#333333" 
+                   TextColor="#1A237E" 
                    HorizontalOptions="Center"
-                   CharacterSpacing="2"/> <Label Text="Podgląd na żywo mieszkańców" 
-                   FontSize="14" 
-                   TextColor="#999999" 
+                   CharacterSpacing="1"/>
+
+            <Label Text="Podgląd na żywo mieszkańców" 
+                   FontSize="16" 
+                   TextColor="#7986CB" 
                    HorizontalOptions="Center"/>
-            
-            <BoxView HeightRequest="4" 
-                     WidthRequest="60" 
-                     Color="#2196F3" 
-                     CornerRadius="2" 
-                     HorizontalOptions="Center"
-                     Margin="0,5,0,0"/>
         </VerticalStackLayout>
 
         <CollectionView Grid.Row="1" 
                         ItemsSource="{Binding Klatki}"
-                        Margin="15">
-            
+                        Margin="20,0,20,20">
+
             <CollectionView.ItemsLayout>
                 <GridItemsLayout Orientation="Vertical" 
                                  Span="2" 
-                                 HorizontalItemSpacing="15" 
-                                 VerticalItemSpacing="15"/>
+                                 HorizontalItemSpacing="20" 
+                                 VerticalItemSpacing="20"/>
             </CollectionView.ItemsLayout>
 
             <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Frame Padding="0" 
-                           CornerRadius="15" 
-                           HasShadow="True" 
-                           BorderColor="Transparent"
-                           BackgroundColor="White"
-                           HeightRequest="130"
-                           IsClippedToBounds="True">
+                <DataTemplate x:DataType="models:Klatka">
+                    <Grid>
 
-                        <Grid>
-                            <Grid ColumnDefinitions="130, *">
-                                <Grid.Triggers>
-                                    <DataTrigger TargetType="Grid" Binding="{Binding Status}" Value="Wolna">
-                                        <Setter Property="IsVisible" Value="False"/>
-                                    </DataTrigger>
-                                </Grid.Triggers>
+                        <Border StrokeShape="RoundRectangle 20"
+                                BackgroundColor="White"
+                                StrokeThickness="0"
+                                HeightRequest="140">
 
-                                <Image Grid.Column="0"
-                                       Source="{Binding Lokator.Zdjecie}"
-                                       Aspect="AspectFill"
-                                       HeightRequest="130"
-                                       WidthRequest="130"
-                                       VerticalOptions="Center"
-                                       HorizontalOptions="Center"/>
+                            <Border.Shadow>
+                                <Shadow Brush="#546E7A" Offset="0,5" Opacity="0.15" Radius="10"/>
+                            </Border.Shadow>
 
-                                <StackLayout Grid.Column="1" Padding="10" VerticalOptions="Center" Spacing="2">
-                                    
-                                    <Frame Padding="6,2" 
-                                           BackgroundColor="#E3F2FD" 
-                                           CornerRadius="6" 
-                                           HorizontalOptions="Start"
-                                           BorderColor="Transparent">
-                                        <Label Text="{Binding Numer}" FontSize="10" TextColor="#2196F3" FontAttributes="Bold"/>
-                                    </Frame>
+                            <Grid ColumnDefinitions="120, *">
+                                <Grid Grid.Column="0">
+                                    <BoxView Color="#F5F5F5"/>
+                                    <ActivityIndicator IsRunning="True" Color="#2196F3" Scale="0.5"/>
+                                    <Image Source="{Binding Lokator.Zdjecie}"
+                                           Aspect="AspectFill"
+                                           HorizontalOptions="Fill"
+                                           VerticalOptions="Fill"/>
+                                </Grid>
 
-                                    <Label Text="{Binding Lokator.Imie}" 
-                                           FontSize="18" 
-                                           FontAttributes="Bold" 
-                                           TextColor="#333"
-                                           LineBreakMode="TailTruncation"/>
-                                    
-                                    <Label Text="{Binding Lokator.Rasa}" 
-                                           FontSize="12" 
-                                           TextColor="#777"
-                                           LineBreakMode="TailTruncation"/>
+                                <Grid Grid.Column="1" RowDefinitions="Auto, *, Auto" Padding="15,12">
+                                    <Border Grid.Row="0" HorizontalOptions="Start" BackgroundColor="#E3F2FD" StrokeShape="RoundRectangle 8" StrokeThickness="0" Padding="8,4">
+                                        <Label Text="{Binding Numer, StringFormat='BOKS {0}'}" FontSize="10" TextColor="#1565C0" FontAttributes="Bold"/>
+                                    </Border>
 
-                                    <Label Text="• ZAJĘTA" 
-                                           FontSize="10" 
-                                           TextColor="#F44336" 
-                                           FontAttributes="Bold"
-                                           Margin="0,5,0,0"/>
-                                </StackLayout>
+                                    <VerticalStackLayout Grid.Row="1" VerticalOptions="Center" Spacing="2">
+                                        <Label Text="{Binding Lokator.Imie}" FontSize="18" FontAttributes="Bold" TextColor="#263238" LineBreakMode="TailTruncation"/>
+                                        <Label Text="{Binding Lokator.Rasa}" FontSize="12" TextColor="#78909C" LineBreakMode="TailTruncation"/>
+                                    </VerticalStackLayout>
+
+                                    <Label Grid.Row="2" Text="🔴 ZAJĘTA" FontSize="10" TextColor="#D32F2F" FontAttributes="Bold" HorizontalOptions="End"/>
+                                </Grid>
                             </Grid>
 
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding CzyZajeta}" Value="False">
+                                    <Setter Property="IsVisible" Value="False"/>
+                                </DataTrigger>
+                            </Border.Triggers>
+                        </Border>
 
-                            <Grid IsVisible="False"> 
-                                <Grid.Triggers>
-                                    <DataTrigger TargetType="Grid" Binding="{Binding Status}" Value="Wolna">
-                                        <Setter Property="IsVisible" Value="True"/>
-                                    </DataTrigger>
-                                </Grid.Triggers>
 
-                                <BoxView WidthRequest="5" HorizontalOptions="Start" Color="#4CAF50" VerticalOptions="Fill"/>
+                        <Border StrokeShape="RoundRectangle 20"
+                                BackgroundColor="#F1F8E9"
+                                Stroke="#81C784"
+                                StrokeThickness="1"
+                                HeightRequest="140"
+                                IsVisible="False">
 
-                                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="5">
-                                    <Label Text="🏠" FontSize="32" HorizontalOptions="Center"/>
-                                    <Label Text="WOLNE" FontSize="18" FontAttributes="Bold" TextColor="#4CAF50" HorizontalOptions="Center"/>
-                                    <Label Text="{Binding Numer}" FontSize="12" TextColor="#999" HorizontalOptions="Center"/>
-                                </VerticalStackLayout>
+                            <Grid RowDefinitions="*, Auto, Auto" Padding="15">
+                                <Label Grid.Row="0" Text="🏠" FontSize="40" HorizontalOptions="Center" VerticalOptions="Center" Opacity="0.8"/>
+
+                                <Label Grid.Row="1" 
+                                       Text="WOLNE" 
+                                       TextColor="#2E7D32" 
+                                       FontSize="16" 
+                                       FontAttributes="Bold" 
+                                       HorizontalOptions="Center" 
+                                       CharacterSpacing="1"/>
+
+                                <Label Grid.Row="2" Text="{Binding Numer, StringFormat='Boks nr {0}'}" TextColor="#66BB6A" FontSize="12" HorizontalOptions="Center" Margin="0,5,0,0"/>
                             </Grid>
 
-                        </Grid>
-                    </Frame>
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding CzyZajeta}" Value="False">
+                                    <Setter Property="IsVisible" Value="True"/>
+                                </DataTrigger>
+                            </Border.Triggers>
+                        </Border>
+
+                    </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

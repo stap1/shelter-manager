@@ -1,63 +1,131 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:ShelterManager.Models"
              x:Class="ShelterManager.TasksPage"
-             Title="ZADANIA"
-             BackgroundColor="#F2F5F8">
+             Title="Zadania"
+             BackgroundColor="#F4F7FA">
 
-    <Grid RowDefinitions="Auto, Auto, *">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#2196F3" Offset="0.0" />
+                <GradientStop Color="#21CBF3" Offset="1.0" />
+            </LinearGradientBrush>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
-        <VerticalStackLayout Grid.Row="0" Margin="0,20,0,10" Spacing="5">
-            <Label Text="HARMONOGRAM OPIEKI" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" TextColor="#333"/>
-            <BoxView HeightRequest="4" WidthRequest="60" Color="#9C27B0" HorizontalOptions="Center"/>
+    <Grid MaximumWidthRequest="800" HorizontalOptions="Center" RowDefinitions="Auto, Auto, *">
+
+        <VerticalStackLayout Grid.Row="0" Margin="0,30,0,25" Spacing="8">
+            <Label Text="HARMONOGRAM" 
+                   FontSize="32" 
+                   FontAttributes="Bold" 
+                   TextColor="#1A237E" 
+                   HorizontalOptions="Center" 
+                   CharacterSpacing="1"/>
+
+            <Label Text="Lista zadań na dziś" 
+                   FontSize="16" 
+                   TextColor="#7986CB" 
+                   HorizontalOptions="Center"/>
         </VerticalStackLayout>
 
-        <Frame Grid.Row="1" Margin="20,0" Padding="10" CornerRadius="15" BackgroundColor="White" HasShadow="False" BorderColor="#DDD">
-            <Grid ColumnDefinitions="*, Auto">
-                <Entry x:Name="EntryZadanie" 
+        <Border Grid.Row="1" 
+                Margin="20,0,20,30" 
+                StrokeShape="RoundRectangle 30" 
+                BackgroundColor="White" 
+                StrokeThickness="0" 
+                HeightRequest="60">
+
+            <Border.Shadow>
+                <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.2" Radius="10"/>
+            </Border.Shadow>
+
+            <Grid ColumnDefinitions="*, Auto" Padding="5">
+                <Entry x:Name="EntryNoweZadanie" 
                        Placeholder="Wpisz nowe zadanie..." 
-                       TextColor="#333"
-                       PlaceholderColor="#999"
-                       BackgroundColor="Transparent"
-                       VerticalOptions="Center"/>
-                
+                       Margin="20,0" 
+                       VerticalOptions="Center"
+                       FontSize="16"
+                       TextColor="#37474F"
+                       PlaceholderColor="#B0BEC5"/>
+
                 <Button Grid.Column="1" 
                         Text="DODAJ" 
-                        Clicked="OnAddTaskClicked"
-                        BackgroundColor="#9C27B0" 
+                        Clicked="OnAddClicked" 
+                        Background="{StaticResource PrimaryGradient}" 
                         TextColor="White" 
-                        CornerRadius="10"
-                        HeightRequest="40"
-                        FontAttributes="Bold"/>
+                        CornerRadius="25" 
+                        HeightRequest="50" 
+                        WidthRequest="100"
+                        FontAttributes="Bold"
+                        Shadow="{Shadow Brush=#2196F3, Offset='0,4', Opacity=0.3, Radius=8}"/>
             </Grid>
-        </Frame>
+        </Border>
 
-        <CollectionView Grid.Row="2" x:Name="ListaZadan" Margin="20" SelectionMode="None">
+        <CollectionView Grid.Row="2" 
+                        ItemsSource="{Binding Zadania}" 
+                        Margin="20,0">
+
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="12"/>
+            </CollectionView.ItemsLayout>
+
             <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Frame Margin="0,5" Padding="15" CornerRadius="10" HasShadow="True" BorderColor="Transparent" BackgroundColor="White">
-                        <Grid ColumnDefinitions="Auto, *">
+                <DataTemplate x:DataType="models:Zadanie">
+                    <Border StrokeShape="RoundRectangle 20" 
+                            BackgroundColor="White" 
+                            StrokeThickness="0" 
+                            Padding="0">
+
+                        <Border.Shadow>
+                            <Shadow Brush="#CFD8DC" Offset="0,2" Opacity="0.1" Radius="5"/>
+                        </Border.Shadow>
+
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnTaskTapped"/>
+                        </Border.GestureRecognizers>
+
+                        <Grid ColumnDefinitions="50, *, Auto" Padding="0,15">
+
                             <CheckBox Grid.Column="0" 
-                                      IsChecked="{Binding CzyZrobione}" 
-                                      Color="#9C27B0" 
+                                      IsChecked="{Binding CzyZrobione, Mode=TwoWay}" 
+                                      Color="#2196F3" 
+                                      HorizontalOptions="Center"
                                       VerticalOptions="Center"
-                                      CheckedChanged="OnTaskCompleted"/>
-                            
-                            <Label Grid.Column="1" 
-                                   Text="{Binding Tresc}" 
-                                   VerticalOptions="Center" 
-                                   FontSize="16" 
-                                   TextColor="#333"
-                                   Margin="10,0,0,0">
-                                <Label.Triggers>
-                                    <DataTrigger TargetType="Label" Binding="{Binding Source={RelativeSource AncestorType={x:Type CheckBox}}, Path=IsChecked}" Value="True">
-                                        <Setter Property="TextDecorations" Value="Strikethrough"/>
-                                        <Setter Property="TextColor" Value="Gray"/>
-                                    </DataTrigger>
-                                </Label.Triggers>
-                            </Label>
+                                      InputTransparent="True"/>
+
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                <Label Text="{Binding Tresc}" 
+                                       FontSize="16" 
+                                       TextColor="#37474F"
+                                       FontAttributes="Bold">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding CzyZrobione}" Value="True">
+                                            <Setter Property="TextDecorations" Value="Strikethrough"/>
+                                            <Setter Property="TextColor" Value="#B0BEC5"/>
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+
+                                <Label Text="{Binding Godzina}" 
+                                       FontSize="12" 
+                                       TextColor="#90A4AE"/>
+                            </VerticalStackLayout>
+
+                            <Button Grid.Column="2" 
+                                    Text="✕" 
+                                    Clicked="OnDeleteTaskClicked" 
+                                    CommandParameter="{Binding .}"
+                                    BackgroundColor="Transparent" 
+                                    TextColor="#EF5350" 
+                                    FontSize="20"
+                                    WidthRequest="50"
+                                    HeightRequest="50"
+                                    VerticalOptions="Center"/>
                         </Grid>
-                    </Frame>
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

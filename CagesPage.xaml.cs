@@ -6,7 +6,9 @@ namespace ShelterManager;
 
 public partial class CagesPage : ContentPage
 {
+    // Używamy ObservableCollection, żeby UI wiedziało o zmianach
     public ObservableCollection<Klatka> Klatki { get; set; } = new();
+
     string filePath = Path.Combine(FileSystem.AppDataDirectory, "shelter_data.json");
 
     public CagesPage()
@@ -24,11 +26,11 @@ public partial class CagesPage : ContentPage
     private void GenerujKlatki()
     {
         Klatki.Clear();
-        
+
         // 1. Pobierz zwierzęta z bazy
         var wszystkieZwierzeta = WczytajZwierzeta();
 
-        // 2. Wybierz tylko te, które fizycznie są w schronisku
+        // 2. Wybierz tylko te, które fizycznie są w schronisku (nie adoptowane)
         var mieszkancy = wszystkieZwierzeta
             .Where(z => z.Status != "Adoptowany")
             .ToList();
@@ -36,17 +38,21 @@ public partial class CagesPage : ContentPage
         // 3. Generujemy 10 boksów
         for (int i = 1; i <= 10; i++)
         {
+            // Tworzymy nową klatkę
             var klatka = new Klatka
             {
-                Numer = $"Boks {i}",
-                Status = "Wolna",
+                // WAŻNE: Wpisujemy sam numer "1", bo w XAML mamy formatowanie "BOKS {0}"
+                Numer = $"{i}",
                 Lokator = null
+                // UWAGA: Nie musimy ustawiać CzyZajeta = false, bo nasz Model 
+                // sam to wie (Lokator jest null -> CzyZajeta jest false)
             };
 
             // Jeśli mamy zwierzaka dla tej klatki, to go wkładamy
             if (i <= mieszkancy.Count)
             {
-                klatka.Status = "Zajęta";
+                // Przypisujemy lokatora. 
+                // Dzięki "sprytnemu" Modelowi Klatka.cs, flaga CzyZajeta ustawi się sama na true!
                 klatka.Lokator = mieszkancy[i - 1];
             }
 
@@ -68,17 +74,4 @@ public partial class CagesPage : ContentPage
             return new List<Zwierze>();
         }
     }
-}
-
-// --- POPRAWIONY MODEL (Rozwiązanie problemów) ---
-public class Klatka
-{
-    // Dajemy = ""; żeby C# nie krzyczał, że "nie ustawiono wartości"
-    public string Numer { get; set; } = ""; 
-    
-    public string Status { get; set; } = "Wolna";
-
-    // Dodajemy znak zapytania '?' przy Zwierze. 
-    // To mówi programowi: "To pole może być puste (null), nie panikuj".
-    public Zwierze? Lokator { get; set; } 
 }

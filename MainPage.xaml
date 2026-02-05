@@ -4,143 +4,161 @@
              xmlns:models="clr-namespace:ShelterManager.Models"
              x:Class="ShelterManager.MainPage"
              Title="Schronisko"
-             BackgroundColor="#F2F5F8">
+             BackgroundColor="#F4F7FA">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <LinearGradientBrush x:Key="FabGradient" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#2196F3" Offset="0.0" />
+                <GradientStop Color="#21CBF3" Offset="1.0" />
+            </LinearGradientBrush>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto, Auto, Auto, *">
 
-        <VerticalStackLayout Grid.Row="0" Margin="0,20,0,10" Spacing="5">
-            <Label Text="STAN SCHRONISKA" 
-                   FontSize="28" 
-                   FontAttributes="Bold" 
-                   TextColor="#333333" 
-                   HorizontalOptions="Center"
-                   CharacterSpacing="2"/>
-            
-            <Label Text="Panel zarządzania i lista zwierząt" 
-                   FontSize="14" 
-                   TextColor="#999999" 
-                   HorizontalOptions="Center"/>
-            
-            <BoxView HeightRequest="4" 
-                     WidthRequest="60" 
-                     Color="#4CAF50" 
-                     CornerRadius="2" 
-                     HorizontalOptions="Center"
-                     Margin="0,5,0,0"/>
-        </VerticalStackLayout>
+        <BoxView Grid.Row="0" Grid.RowSpan="3" 
+                 Color="#E3F2FD" 
+                 Opacity="0.5"
+                 VerticalOptions="Fill" 
+                 HorizontalOptions="Fill"/>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*, *" Margin="20,5" ColumnSpacing="15">
-            <Frame Grid.Column="0" BackgroundColor="White" Padding="15" CornerRadius="15" HasShadow="False">
-                <HorizontalStackLayout HorizontalOptions="Center" Spacing="15" VerticalOptions="Center">
-                    <Label Text="🐾" FontSize="24" VerticalOptions="Center"/>
-                    <VerticalStackLayout VerticalOptions="Center">
-                        <Label Text="Zwierząt" FontSize="11" TextColor="Gray"/>
-                        <Label x:Name="LblTotalAnimals" Text="0" FontAttributes="Bold" FontSize="20" TextColor="#333"/>
-                    </VerticalStackLayout>
-                </HorizontalStackLayout>
-            </Frame>
-            
-            <Frame Grid.Column="1" BackgroundColor="White" Padding="15" CornerRadius="15" HasShadow="False">
-                <HorizontalStackLayout HorizontalOptions="Center" Spacing="15" VerticalOptions="Center">
-                    <Label Text="🏥" FontSize="24" VerticalOptions="Center"/>
-                    <VerticalStackLayout VerticalOptions="Center">
-                        <Label Text="Kwarantanna" FontSize="11" TextColor="Gray"/>
-                        <Label x:Name="LblInQuarantine" Text="0" FontAttributes="Bold" FontSize="20" TextColor="#FF9800"/>
-                    </VerticalStackLayout>
-                </HorizontalStackLayout>
-            </Frame>
-        </Grid>
+        <Grid Grid.Row="0" Grid.RowSpan="4"
+              RowDefinitions="Auto, Auto, Auto, *" 
+              MaximumWidthRequest="1000" 
+              HorizontalOptions="Center"
+              Padding="20,10"
+              RowSpacing="20">
 
-        <Frame Grid.Row="2" Margin="20,10" Padding="10,0" CornerRadius="25" HeightRequest="50" HasShadow="False" BorderColor="#DDD" BackgroundColor="White">
-            <SearchBar x:Name="SearchBarZwierzeta" 
-                       Placeholder="Szukaj po imieniu..." 
-                       TextChanged="OnSearchTextChanged"
-                       BackgroundColor="Transparent"
-                       CancelButtonColor="Gray"
-                       VerticalOptions="Center"/>
-        </Frame>
+            <VerticalStackLayout Grid.Row="0" Margin="0,20,0,0" Spacing="5">
+                <Label Text="STAN SCHRONISKA" 
+                       FontSize="32" 
+                       FontAttributes="Bold" 
+                       TextColor="#1A237E" 
+                       HorizontalOptions="Center"
+                       CharacterSpacing="1"/>
+                <Label Text="Panel zarządzania i ewidencja podopiecznych" 
+                       FontSize="16" 
+                       TextColor="#5C6BC0" 
+                       HorizontalOptions="Center"/>
+            </VerticalStackLayout>
 
-        <Grid Grid.Row="3">
-            <CollectionView x:Name="ListaZwierzat" 
+            <Grid Grid.Row="1" ColumnDefinitions="*, *" ColumnSpacing="20">
+                <Border Grid.Column="0" BackgroundColor="White" Padding="15" StrokeShape="RoundRectangle 20" StrokeThickness="0" HeightRequest="100">
+                    <Border.Shadow>
+                        <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.2" Radius="10"/>
+                    </Border.Shadow>
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="15" VerticalOptions="Center">
+                        <Border StrokeShape="RoundRectangle 30" HeightRequest="50" WidthRequest="50" BackgroundColor="#E3F2FD" StrokeThickness="0">
+                            <Label Text="🐾" FontSize="24" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        </Border>
+                        <VerticalStackLayout VerticalOptions="Center">
+                            <Label Text="Wszystkie" FontSize="12" TextColor="#90A4AE" TextTransform="Uppercase" FontAttributes="Bold"/>
+                            <Label x:Name="LblTotalAnimals" Text="0" FontAttributes="Bold" FontSize="24" TextColor="#263238"/>
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
+                </Border>
+
+                <Border Grid.Column="1" BackgroundColor="White" Padding="15" StrokeShape="RoundRectangle 20" StrokeThickness="0" HeightRequest="100">
+                    <Border.Shadow>
+                        <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.2" Radius="10"/>
+                    </Border.Shadow>
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="15" VerticalOptions="Center">
+                        <Border StrokeShape="RoundRectangle 30" HeightRequest="50" WidthRequest="50" BackgroundColor="#FFF3E0" StrokeThickness="0">
+                            <Label Text="🏥" FontSize="24" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        </Border>
+                        <VerticalStackLayout VerticalOptions="Center">
+                            <Label Text="Kwarantanna" FontSize="12" TextColor="#90A4AE" TextTransform="Uppercase" FontAttributes="Bold"/>
+                            <Label x:Name="LblInQuarantine" Text="0" FontAttributes="Bold" FontSize="24" TextColor="#E65100"/>
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
+                </Border>
+            </Grid>
+
+            <Border Grid.Row="2" Margin="0,0,0,20" Padding="15,0" StrokeShape="RoundRectangle 30" HeightRequest="50" BackgroundColor="White" StrokeThickness="0">
+                <Border.Shadow>
+                    <Shadow Brush="#5C6BC0" Offset="0,4" Opacity="0.15" Radius="10"/>
+                </Border.Shadow>
+                <Grid ColumnDefinitions="Auto, *">
+                    <Label Text="🔍" VerticalOptions="Center" FontSize="18" Margin="0,0,10,0" Opacity="0.5"/>
+                    <SearchBar x:Name="SearchBarZwierzeta" 
+                               Grid.Column="1"
+                               Placeholder="Wpisz imię zwierzaka..." 
+                               TextChanged="OnSearchTextChanged"
+                               BackgroundColor="Transparent"
+                               CancelButtonColor="Gray"
+                               VerticalOptions="Center"
+                               FontSize="16"/>
+                </Grid>
+            </Border>
+
+            <CollectionView Grid.Row="3" 
+                            x:Name="ListaZwierzat" 
                             ItemsSource="{Binding FiltrowaneZwierzeta}"
                             SelectionMode="Single"
                             SelectionChanged="OnSelectionChanged"
-                            Margin="15">
-                
+                            Margin="0">
+
+                <CollectionView.EmptyView>
+                    <Grid Padding="0,50,0,0">
+                        <VerticalStackLayout VerticalOptions="Start" HorizontalOptions="Center" Spacing="10">
+                            <Label Text="🤷‍♂️" FontSize="60" HorizontalOptions="Center" Opacity="0.8"/>
+                            <Label Text="Nie znaleziono zwierzaka" FontSize="20" TextColor="#455A64" HorizontalOptions="Center" FontAttributes="Bold"/>
+                            <Label Text="Spróbuj wpisać inne imię" FontSize="14" TextColor="#90A4AE" HorizontalOptions="Center"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                </CollectionView.EmptyView>
+
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="15"/>
                 </CollectionView.ItemsLayout>
 
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Zwierze">
-                        
-                        <Frame HasShadow="True" 
-                               Padding="0" 
-                               CornerRadius="20" 
-                               IsClippedToBounds="True"
-                               BackgroundColor="White"
-                               BorderColor="Transparent"
-                               HeightRequest="120">
-                            
-                            <Grid ColumnDefinitions="120, *">
-                                <Image Grid.Column="0"
-                                       Source="{Binding Zdjecie}" 
-                                       Aspect="AspectFill" 
-                                       HeightRequest="120" 
-                                       WidthRequest="120"/>
-
-                                <StackLayout Grid.Column="1" 
-                                             Padding="15,10" 
-                                             VerticalOptions="Center" 
-                                             Spacing="5">
-                                    
-                                    <Label Text="{Binding Imie}" 
-                                           FontSize="20" 
-                                           FontAttributes="Bold" 
-                                           TextColor="#333333" />
-                                    
-                                    <Label Text="{Binding Rasa}" 
-                                           FontSize="14" 
-                                           TextColor="#777777" />
-                                    
-                                    <Frame Padding="10,4" 
-                                           CornerRadius="8" 
-                                           BackgroundColor="{Binding Status, Converter={StaticResource StatusToColorConverter}}"
-                                           HorizontalOptions="Start"
-                                           BorderColor="Transparent"
-                                           Margin="0,5,0,0">
-                                        <Label Text="{Binding Status}" 
-                                               FontSize="11" 
-                                               FontAttributes="Bold" 
-                                               TextColor="White" />
-                                    </Frame>
-                                </StackLayout>
-
+                        <Grid Padding="5">
+                            <Border StrokeShape="RoundRectangle 25" StrokeThickness="0" BackgroundColor="White" HeightRequest="130">
+                                <Border.Shadow>
+                                    <Shadow Brush="#455A64" Offset="0,4" Opacity="0.1" Radius="15"/>
+                                </Border.Shadow>
+                                <Grid ColumnDefinitions="130, *, Auto">
+                                    <Grid Grid.Column="0">
+                                        <BoxView Color="#F5F5F5"/>
+                                        <ActivityIndicator IsRunning="True" Color="#2196F3" Scale="0.5"/>
+                                        <Image Source="{Binding Zdjecie}" Aspect="AspectFill" HorizontalOptions="Fill" VerticalOptions="Fill"/>
+                                    </Grid>
+                                    <VerticalStackLayout Grid.Column="1" Padding="20,15" VerticalOptions="Center" Spacing="4">
+                                        <Label Text="{Binding Imie}" FontSize="20" FontAttributes="Bold" TextColor="#263238"/>
+                                        <Label Text="{Binding Rasa}" FontSize="14" TextColor="#78909C"/>
+                                        <Border HorizontalOptions="Start" Margin="0,6,0,0" StrokeShape="RoundRectangle 8" StrokeThickness="0" BackgroundColor="{Binding Status, Converter={StaticResource StatusToColorConverter}}" Padding="10,4">
+                                            <Label Text="{Binding Status}" TextColor="White" FontSize="11" FontAttributes="Bold" TextTransform="Uppercase"/>
+                                        </Border>
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="2" Text="&#8942;" FontSize="28" TextColor="#CFD8DC" VerticalOptions="Start" Padding="0,10,15,0"/>
+                                </Grid>
                                 <FlyoutBase.ContextFlyout>
                                     <MenuFlyout>
-                                        <MenuFlyoutItem Text="Usuń zwierzaka" 
-                                                        Clicked="OnDeleteClicked" 
-                                                        CommandParameter="{Binding .}" />
+                                        <MenuFlyoutItem Text="Usuń zwierzaka" Clicked="OnDeleteClicked" CommandParameter="{Binding .}" />
                                     </MenuFlyout>
                                 </FlyoutBase.ContextFlyout>
-                            </Grid>
-                        </Frame>
+                            </Border>
+                        </Grid>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <Button Text="+" 
-                    Clicked="OnAddClicked"
-                    FontSize="32"
-                    TextColor="White"
-                    BackgroundColor="#2196F3"
-                    CornerRadius="35"
-                    WidthRequest="70"
-                    HeightRequest="70"
-                    HorizontalOptions="End"
-                    VerticalOptions="End"
-                    Margin="25"
-                    Shadow="{Shadow Brush=Black, Offset='2,2', Opacity=0.3, Radius=5}"/>
         </Grid>
+
+        <Button Text="+" Grid.Row="3"
+                Clicked="OnAddClicked"
+                FontSize="36"
+                TextColor="White"
+                Background="{StaticResource FabGradient}"
+                CornerRadius="40"
+                WidthRequest="80"
+                HeightRequest="80"
+                HorizontalOptions="End"
+                VerticalOptions="End"
+                Margin="40"
+                Shadow="{Shadow Brush=#2196F3, Offset='0,10', Opacity=0.4, Radius=15}"/>
     </Grid>
 </ContentPage>

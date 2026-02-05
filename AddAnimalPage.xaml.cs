@@ -8,8 +8,10 @@ public partial class AddAnimalPage : ContentPage
     public AddAnimalPage()
     {
         InitializeComponent();
-        PickerGatunek.SelectedIndex = 0;
-        PickerStatus.SelectedIndex = 0;
+
+        // Ustawiamy domyślne wartości, żeby użytkownik nie musiał klikać wszystkiego
+        PickerGatunek.SelectedIndex = 0; // Domyślnie Pies
+        PickerStatus.SelectedIndex = 0;  // Domyślnie Kwarantanna
     }
 
     private async void OnCancelClicked(object sender, EventArgs e)
@@ -27,67 +29,86 @@ public partial class AddAnimalPage : ContentPage
         }
 
         // 2. Pobieranie danych z formularza
-        string imie = EntryImie.Text;
-        string rasa = string.IsNullOrWhiteSpace(EntryRasa.Text) ? "Mieszaniec" : EntryRasa.Text.Trim(); 
+        string imie = EntryImie.Text.Trim();
+        string rasa = string.IsNullOrWhiteSpace(EntryRasa.Text) ? "Mieszaniec" : EntryRasa.Text.Trim();
+
+        // Bezpieczne pobranie wartości z Pickerów
         string gatunek = PickerGatunek.SelectedItem?.ToString() ?? "Pies";
         string status = PickerStatus.SelectedItem?.ToString() ?? "Kwarantanna";
-        
-        // --- NOWE DANE (Pobieramy z nowych pól) ---
-        // Jeśli pole jest puste, wpisujemy wartość domyślną
+
         string wiek = string.IsNullOrWhiteSpace(EntryWiek.Text) ? "Nieznany" : EntryWiek.Text.Trim();
         string historia = string.IsNullOrWhiteSpace(EntryHistoria.Text) ? "Brak wpisów" : EntryHistoria.Text.Trim();
 
-        // 3. --- INTELLIGENTNE DOBIERANIE ZDJĘCIA ---
-        string wpisanaRasa = rasa.ToLower(); 
-        string tagDoWyszukiwania = "animal"; 
+        // 3. --- INTELLIGENTNE DOBIERANIE ZDJĘCIA (Poprawione) ---
+        // Budujemy URL w oparciu o gatunek + rasę dla lepszych wyników
+        string zdjecieUrl = GenerujUrlZdjecia(gatunek, rasa);
 
-        // -- TŁUMACZ RAS (PL -> EN) --
-        // PSY
-        if (wpisanaRasa.Contains("owczar")) tagDoWyszukiwania = "germanshepherd";
-        else if (wpisanaRasa.Contains("labrador")) tagDoWyszukiwania = "labrador";
-        else if (wpisanaRasa.Contains("husky")) tagDoWyszukiwania = "husky";
-        else if (wpisanaRasa.Contains("jamnik")) tagDoWyszukiwania = "dachshund";
-        else if (wpisanaRasa.Contains("buldog")) tagDoWyszukiwania = "bulldog";
-        else if (wpisanaRasa.Contains("mops")) tagDoWyszukiwania = "pug";
-        else if (wpisanaRasa.Contains("beagle")) tagDoWyszukiwania = "beagle";
-        else if (wpisanaRasa.Contains("chihuahua")) tagDoWyszukiwania = "chihuahua";
-        else if (wpisanaRasa.Contains("rottweiler")) tagDoWyszukiwania = "rottweiler";
-        else if (wpisanaRasa.Contains("doberman")) tagDoWyszukiwania = "doberman";
-        
-        // KOTY
-        else if (wpisanaRasa.Contains("sfinks")) tagDoWyszukiwania = "sphynx";
-        else if (wpisanaRasa.Contains("pers")) tagDoWyszukiwania = "persian,cat";
-        else if (wpisanaRasa.Contains("bengal")) tagDoWyszukiwania = "bengal,cat";
-        else if (wpisanaRasa.Contains("maine")) tagDoWyszukiwania = "mainecoon";
-        else if (wpisanaRasa.Contains("syjam")) tagDoWyszukiwania = "siamese,cat";
-        else if (wpisanaRasa.Contains("dachowiec")) tagDoWyszukiwania = "cat";
-
-        // INNE
-        else if (wpisanaRasa.Contains("chomik")) tagDoWyszukiwania = "hamster";
-        else if (wpisanaRasa.Contains("królik")) tagDoWyszukiwania = "rabbit";
-        else if (wpisanaRasa.Contains("papuga")) tagDoWyszukiwania = "parrot";
-        else 
-        {
-            tagDoWyszukiwania = gatunek == "Pies" ? "dog" : (gatunek == "Kot" ? "cat" : "animal");
-        }
-
-        string losowyNumer = Guid.NewGuid().ToString().Substring(0, 5);
-        string zdjecieUrl = $"https://loremflickr.com/500/500/{tagDoWyszukiwania}?lock={losowyNumer}";
-
-        // 4. Tworzenie obiektu (TERAZ Z WIEKIEM I HISTORIĄ)
+        // 4. Tworzenie obiektu
         var noweZwierze = new Zwierze
         {
             Imie = imie,
-            Rasa = rasa, 
+            Rasa = rasa,
             Status = status,
             Zdjecie = zdjecieUrl,
-            // Przypisujemy nowe właściwości:
             Wiek = wiek,
             HistoriaMedyczna = historia
         };
 
-        // 5. Wyślij i zamknij
+        // 5. Wyślij komunikat do MainPage i zamknij okno
         WeakReferenceMessenger.Default.Send(noweZwierze);
         await Navigation.PopAsync();
+    }
+
+    // Wydzielona metoda do generowania URL - czyściej i bezpieczniej
+    private string GenerujUrlZdjecia(string gatunek, string rasa)
+    {
+        string rasaLow = rasa.ToLower();
+        string tagi = "animal"; // Domyślny tag
+
+        // Logika dla PSÓW
+        if (gatunek == "Pies")
+        {
+            tagi = "dog"; // Baza to pies
+
+            if (rasaLow.Contains("owczar")) tagi = "dog,germanshepherd";
+            else if (rasaLow.Contains("labrador")) tagi = "dog,labrador";
+            else if (rasaLow.Contains("golden")) tagi = "dog,goldenretriever";
+            else if (rasaLow.Contains("husky")) tagi = "dog,husky";
+            else if (rasaLow.Contains("jamnik")) tagi = "dog,dachshund";
+            else if (rasaLow.Contains("buldog")) tagi = "dog,bulldog";
+            else if (rasaLow.Contains("mops")) tagi = "dog,pug";
+            else if (rasaLow.Contains("beagle")) tagi = "dog,beagle";
+            else if (rasaLow.Contains("chihuahua")) tagi = "dog,chihuahua";
+            else if (rasaLow.Contains("rottweiler")) tagi = "dog,rottweiler";
+            else if (rasaLow.Contains("doberman")) tagi = "dog,doberman";
+            else if (rasaLow.Contains("kundel") || rasaLow.Contains("mieszaniec")) tagi = "dog,mongrel";
+        }
+        // Logika dla KOTÓW
+        else if (gatunek == "Kot")
+        {
+            tagi = "cat"; // Baza to kot
+
+            if (rasaLow.Contains("sfinks")) tagi = "cat,sphynx";
+            else if (rasaLow.Contains("pers")) tagi = "cat,persian";
+            else if (rasaLow.Contains("bengal")) tagi = "cat,bengal";
+            else if (rasaLow.Contains("maine")) tagi = "cat,mainecoon";
+            else if (rasaLow.Contains("syjam")) tagi = "cat,siamese";
+            else if (rasaLow.Contains("czarny")) tagi = "cat,black";
+            else if (rasaLow.Contains("rudy")) tagi = "cat,ginger";
+        }
+        // INNE
+        else
+        {
+            if (rasaLow.Contains("chomik")) tagi = "hamster";
+            else if (rasaLow.Contains("królik")) tagi = "rabbit";
+            else if (rasaLow.Contains("papuga")) tagi = "parrot,bird";
+            else if (rasaLow.Contains("świnka")) tagi = "guineapig";
+        }
+
+        // Generujemy losową liczbę, żeby zdjęcie było unikalne dla tego zwierzaka
+        int losowyNumer = new Random().Next(1, 10000);
+
+        // Format URL: 400x400 jest szybsze niż 500x500 i wystarcza na telefon/okno
+        return $"https://loremflickr.com/400/400/{tagi}?lock={losowyNumer}";
     }
 }

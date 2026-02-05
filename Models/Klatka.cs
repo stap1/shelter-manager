@@ -4,8 +4,7 @@ public class Klatka : BaseModel
 {
     private string _numer = string.Empty;
     private bool _czyZajeta;
-    private string _mieszkaniec = "Pusta";
-    private string _kolorStatusu = "Gray"; // Dodatkowy bajer wizualny
+    private Zwierze? _lokator; // Zmieniamy string na obiekt Zwierze!
 
     public string Numer
     {
@@ -19,16 +18,20 @@ public class Klatka : BaseModel
         set { if (_czyZajeta != value) { _czyZajeta = value; OnPropertyChanged(); } }
     }
 
-    public string Mieszkaniec
+    // Teraz klatka przechowuje całego zwierzaka, więc mamy dostęp do Zdjecia i Rasy
+    public Zwierze? Lokator
     {
-        get => _mieszkaniec;
-        set { if (_mieszkaniec != value) { _mieszkaniec = value; OnPropertyChanged(); } }
-    }
-
-    // To pozwoli nam kolorować klatkę: Czerwona (zajęta) lub Zielona (wolna)
-    public string KolorStatusu
-    {
-        get => _kolorStatusu;
-        set { if (_kolorStatusu != value) { _kolorStatusu = value; OnPropertyChanged(); } }
+        get => _lokator;
+        set
+        {
+            if (_lokator != value)
+            {
+                _lokator = value;
+                // Automatycznie ustawiamy flagę, jeśli ktoś tu mieszka
+                CzyZajeta = _lokator != null;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CzyZajeta));
+            }
+        }
     }
 }

@@ -4,141 +4,148 @@
              xmlns:models="clr-namespace:ShelterManager.Models"
              x:Class="ShelterManager.InventoryPage"
              Title="Magazyn"
-             BackgroundColor="#F2F5F8">
+             BackgroundColor="#F4F7FA">
 
-    <Grid RowDefinitions="Auto, *">
-        
-        <VerticalStackLayout Grid.Row="0" Margin="0,20,0,20" Spacing="5">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <LinearGradientBrush x:Key="FabGradient" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#2196F3" Offset="0.0" />
+                <GradientStop Color="#21CBF3" Offset="1.0" />
+            </LinearGradientBrush>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid MaximumWidthRequest="1000" HorizontalOptions="Center" RowDefinitions="Auto, *">
+
+        <VerticalStackLayout Grid.Row="0" Margin="0,30,0,25" Spacing="8">
             <Label Text="MAGAZYN" 
-                   FontSize="28" 
+                   FontSize="32" 
                    FontAttributes="Bold" 
-                   TextColor="#333333" 
-                   HorizontalOptions="Center"
-                   CharacterSpacing="2"/>
-            
+                   TextColor="#1A237E" 
+                   HorizontalOptions="Center" 
+                   CharacterSpacing="1"/>
+
             <Label Text="Zarządzanie zapasami i karmą" 
-                   FontSize="14" 
-                   TextColor="#999999" 
+                   FontSize="16" 
+                   TextColor="#7986CB" 
                    HorizontalOptions="Center"/>
-            
-            <BoxView HeightRequest="4" 
-                     WidthRequest="60" 
-                     Color="#FF9800" 
-                     CornerRadius="2" 
-                     HorizontalOptions="Center"
-                     Margin="0,5,0,0"/>
         </VerticalStackLayout>
 
         <CollectionView Grid.Row="1" 
                         x:Name="ListaZasobow"
-                        ItemsSource="{Binding Zasoby}"
-                        Margin="15">
-            
+                        ItemsSource="{Binding Zasoby}" 
+                        Margin="20,0,20,20">
+
             <CollectionView.ItemsLayout>
-                <GridItemsLayout Orientation="Vertical" 
-                                 Span="2" 
-                                 HorizontalItemSpacing="15" 
-                                 VerticalItemSpacing="15"/>
+                <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="20" VerticalItemSpacing="20"/>
             </CollectionView.ItemsLayout>
 
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Zasob">
-                    
-                    <Frame Padding="0" 
-                           CornerRadius="20" 
-                           HasShadow="True" 
-                           BorderColor="Transparent" 
-                           BackgroundColor="White"
-                           HeightRequest="190">
+                    <Border StrokeShape="RoundRectangle 25" 
+                            BackgroundColor="White" 
+                            StrokeThickness="0" 
+                            HeightRequest="160">
 
-                        <Grid RowDefinitions="Auto, *, Auto, Auto" Padding="10">
-                            
-                            <Label Grid.Row="0" 
-                                   Text="{Binding Nazwa}" 
-                                   FontSize="16" 
-                                   FontAttributes="Bold"
-                                   TextColor="#444444" 
-                                   HorizontalOptions="Center"
-                                   HorizontalTextAlignment="Center"
-                                   MaxLines="2"
-                                   LineBreakMode="TailTruncation"/>
+                        <Border.Shadow>
+                            <Shadow Brush="#546E7A" Offset="0,5" Opacity="0.15" Radius="15"/>
+                        </Border.Shadow>
 
-                            <Grid Grid.Row="1" ColumnDefinitions="40, *, 40" VerticalOptions="Center">
-                                <Button Grid.Column="0"
-                                        Text="-"
-                                        Clicked="OnMinusClicked"
+                        <Grid RowDefinitions="Auto, *, Auto" Padding="15">
+
+                            <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+                                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                                    <Border StrokeShape="RoundRectangle 12" BackgroundColor="#E3F2FD" StrokeThickness="0" Padding="8">
+                                        <Label Text="📦" FontSize="18"/>
+                                    </Border>
+                                    <Label Text="{Binding Nazwa}" 
+                                           FontSize="15" 
+                                           FontAttributes="Bold" 
+                                           TextColor="#37474F" 
+                                           LineBreakMode="TailTruncation"
+                                           VerticalOptions="Center"
+                                           MaxLines="2"/>
+                                </HorizontalStackLayout>
+
+                                <Button Grid.Column="1"
+                                        Text="✕"
+                                        Clicked="OnDeleteClicked"
                                         CommandParameter="{Binding .}"
-                                        BackgroundColor="#F0F0F0"
-                                        TextColor="Black"
-                                        FontAttributes="Bold"
-                                        FontSize="20"
+                                        BackgroundColor="Transparent"
+                                        TextColor="#EF5350"
+                                        FontSize="18"
+                                        HeightRequest="30"
+                                        WidthRequest="30"
                                         Padding="0"
-                                        CornerRadius="10"
-                                        HeightRequest="40"
-                                        WidthRequest="40"/>
-
-                                <Label Grid.Column="1" 
-                                       Text="{Binding Ilosc}" 
-                                       FontSize="36" 
-                                       FontAttributes="Bold" 
-                                       HorizontalOptions="Center" 
-                                       VerticalOptions="Center"
-                                       TextColor="#2196F3"> <Label.Triggers>
-                                        <DataTrigger TargetType="Label" Binding="{Binding Ilosc}" Value="0">
-                                            <Setter Property="TextColor" Value="#F44336"/> </DataTrigger>
-                                    </Label.Triggers>
-                                </Label>
-
-                                <Button Grid.Column="2"
-                                        Text="+"
-                                        Clicked="OnPlusClicked"
-                                        CommandParameter="{Binding .}"
-                                        BackgroundColor="#E3F2FD"
-                                        TextColor="#2196F3"
-                                        FontAttributes="Bold"
-                                        FontSize="20"
-                                        Padding="0"
-                                        CornerRadius="10"
-                                        HeightRequest="40"
-                                        WidthRequest="40"/>
+                                        HorizontalOptions="End"
+                                        VerticalOptions="Start"/>
                             </Grid>
 
-                            <Label Grid.Row="2" 
-                                   Text="sztuk" 
-                                   FontSize="11" 
-                                   TextColor="#999999" 
-                                   HorizontalOptions="Center"
-                                   Margin="0,0,0,5"/>
+                            <Label Grid.Row="1" 
+                                   Text="{Binding Ilosc}" 
+                                   FontSize="40" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#1565C0" 
+                                   HorizontalOptions="Center" 
+                                   VerticalOptions="Center">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding Ilosc}" Value="0">
+                                        <Setter Property="TextColor" Value="#EF5350"/>
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
 
-                            <Button Grid.Row="3"
-                                    Text="Usuń"
-                                    Clicked="OnDeleteClicked"
-                                    CommandParameter="{Binding .}"
-                                    BackgroundColor="#FFEBEE"
-                                    TextColor="#D32F2F"
-                                    FontSize="12"
-                                    FontAttributes="Bold"
-                                    HeightRequest="30"
-                                    Padding="0"
-                                    CornerRadius="15"/>
+                            <Grid Grid.Row="2" ColumnDefinitions="45, *, 45">
+                                <Button Grid.Column="0" 
+                                        Text="-" 
+                                        Clicked="OnMinusClicked" 
+                                        CommandParameter="{Binding .}" 
+                                        BackgroundColor="#F5F5F5" 
+                                        TextColor="#546E7A" 
+                                        CornerRadius="12" 
+                                        Padding="0" 
+                                        HeightRequest="40" 
+                                        FontAttributes="Bold" 
+                                        FontSize="18"/>
+
+                                <Label Grid.Column="1" 
+                                       Text="szt." 
+                                       FontSize="12" 
+                                       TextColor="#B0BEC5" 
+                                       HorizontalOptions="Center" 
+                                       VerticalOptions="Center" 
+                                       TextTransform="Uppercase"/>
+
+                                <Button Grid.Column="2" 
+                                        Text="+" 
+                                        Clicked="OnPlusClicked" 
+                                        CommandParameter="{Binding .}" 
+                                        BackgroundColor="#E3F2FD" 
+                                        TextColor="#1565C0" 
+                                        CornerRadius="12" 
+                                        Padding="0" 
+                                        HeightRequest="40" 
+                                        FontAttributes="Bold" 
+                                        FontSize="18"/>
+                            </Grid>
                         </Grid>
-                    </Frame>
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        
+
         <Button Grid.Row="1"
                 Text="+" 
                 Clicked="OnAddTypeClicked"
-                FontSize="32"
+                FontSize="36"
                 TextColor="White"
-                BackgroundColor="#FF9800" 
+                Background="{StaticResource FabGradient}"
                 CornerRadius="35"
                 WidthRequest="70"
                 HeightRequest="70"
                 HorizontalOptions="End"
                 VerticalOptions="End"
-                Margin="25"
-                Shadow="{Shadow Brush=Black, Offset='2,2', Opacity=0.3, Radius=5}"/>
+                Margin="30"
+                Shadow="{Shadow Brush=#2196F3, Offset='0,8', Opacity=0.4, Radius=15}"/>
     </Grid>
 </ContentPage>
