@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ShelterManager.AddAnimalPage"
+             Title="Dodaj Zwierzę"
+             BackgroundColor="#F2F5F8">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20" VerticalOptions="Center">
+
+            <Label Text="Nowy Podopieczny"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="#333333"
+                   HorizontalOptions="Center"
+                   Margin="0,10,0,10"/>
+
+            <Frame BackgroundColor="White"
+                   CornerRadius="20"
+                   HasShadow="True"
+                   Padding="20"
+                   BorderColor="Transparent">
+                
+                <VerticalStackLayout Spacing="15">
+
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Imię" TextColor="Black" FontSize="14" FontAttributes="Bold" Margin="5,0,0,0"/>
+                        <Frame Padding="10,5" MinimumHeightRequest="50" CornerRadius="10" BackgroundColor="#EEEEEE" BorderColor="Transparent" HasShadow="False">
+                            <Entry x:Name="EntryImie" 
+                                   Placeholder="Np. Azor"
+                                   PlaceholderColor="#555555" 
+                                   TextColor="Black"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center"/>
+                        </Frame>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Gatunek" TextColor="Black" FontSize="14" FontAttributes="Bold" Margin="5,0,0,0"/>
+                        <Frame Padding="10,5" MinimumHeightRequest="50" CornerRadius="10" BackgroundColor="#EEEEEE" BorderColor="Transparent" HasShadow="False">
+                            <Picker x:Name="PickerGatunek" 
+                                    Title="Wybierz gatunek" 
+                                    TextColor="Black"
+                                    TitleColor="#555555"
+                                    BackgroundColor="Transparent"
+                                    VerticalOptions="Center">
+                                <Picker.Items>
+                                    <x:String>Pies</x:String>
+                                    <x:String>Kot</x:String>
+                                    <x:String>Inne</x:String>
+                                </Picker.Items>
+                            </Picker>
+                        </Frame>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Rasa" TextColor="Black" FontSize="14" FontAttributes="Bold" Margin="5,0,0,0"/>
+                        <Frame Padding="10,5" MinimumHeightRequest="50" CornerRadius="10" BackgroundColor="#EEEEEE" BorderColor="Transparent" HasShadow="False">
+                            <Entry x:Name="EntryRasa" 
+                                   Placeholder="Np. Owczarek"
+                                   PlaceholderColor="#555555"
+                                   TextColor="Black"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center"/>
+                        </Frame>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Wiek" TextColor="Black" FontSize="14" FontAttributes="Bold" Margin="5,0,0,0"/>
+                        <Frame Padding="10,5" MinimumHeightRequest="50" CornerRadius="10" BackgroundColor="#EEEEEE" BorderColor="Transparent" HasShadow="False">
+                            <Entry x:Name="EntryWiek" 
+                                   Placeholder="Np. 2 lata"
+                                   PlaceholderColor="#555555"
+                                   TextColor="Black"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center"/>
+                        </Frame>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Historia medyczna" TextColor="Black" FontSize="14" FontAttributes="Bold" Margin="5,0,0,0"/>
+                        <Frame Padding="10,5" MinimumHeightRequest="50" CornerRadius="10" BackgroundColor="#EEEEEE" BorderColor="Transparent" HasShadow="False">
+                            <Entry x:Name="EntryHistoria" 
+                                   Placeholder="Np. Szczepiony, odrobaczony"
+                                   PlaceholderColor="#555555"
+                                   TextColor="Black"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center"/>
+                        </Frame>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Status początkowy" TextColor="Black" FontSize="14" FontAttributes="Bold" Margin="5,0,0,0"/>
+                        <Frame Padding="10,5" MinimumHeightRequest="50" CornerRadius="10" BackgroundColor="#EEEEEE" BorderColor="Transparent" HasShadow="False">
+                            <Picker x:Name="PickerStatus" 
+                                    Title="Wybierz status" 
+                                    TextColor="Black"
+                                    TitleColor="#555555"
+                                    BackgroundColor="Transparent"
+                                    VerticalOptions="Center">
+                                <Picker.Items>
+                                    <x:String>Kwarantanna</x:String>
+                                    <x:String>W leczeniu</x:String>
+                                    <x:String>Do adopcji</x:String>
+                                    <x:String>Adoptowany</x:String>
+                                </Picker.Items>
+                            </Picker>
+                        </Frame>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+            </Frame>
+
+            <Button Text="Zapisz do bazy"
+                    Clicked="OnSaveClicked"
+                    BackgroundColor="#2196F3"
+                    TextColor="White"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    CornerRadius="25"
+                    HeightRequest="55"
+                    Margin="0,10,0,0"
+                    Shadow="{Shadow Brush=Black, Offset='0,4', Opacity=0.2, Radius=5}"/>
+
+            <Button Text="Anuluj"
+                    Clicked="OnCancelClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="#555555"
+                    FontSize="16"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

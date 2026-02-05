@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:ShelterManager.Models"
+             x:Class="ShelterManager.CagesPage"
+             Title="Klatki"
+             BackgroundColor="#F2F5F8">
+
+    <Grid RowDefinitions="Auto, *">
+
+        <VerticalStackLayout Grid.Row="0" Margin="0,20,0,20" Spacing="5">
+            <Label Text="KLATKI I BOKSY" 
+                   FontSize="28" 
+                   FontAttributes="Bold" 
+                   TextColor="#333333" 
+                   HorizontalOptions="Center"
+                   CharacterSpacing="2"/> <Label Text="Podgląd na żywo mieszkańców" 
+                   FontSize="14" 
+                   TextColor="#999999" 
+                   HorizontalOptions="Center"/>
+            
+            <BoxView HeightRequest="4" 
+                     WidthRequest="60" 
+                     Color="#2196F3" 
+                     CornerRadius="2" 
+                     HorizontalOptions="Center"
+                     Margin="0,5,0,0"/>
+        </VerticalStackLayout>
+
+        <CollectionView Grid.Row="1" 
+                        ItemsSource="{Binding Klatki}"
+                        Margin="15">
+            
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" 
+                                 Span="2" 
+                                 HorizontalItemSpacing="15" 
+                                 VerticalItemSpacing="15"/>
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame Padding="0" 
+                           CornerRadius="15" 
+                           HasShadow="True" 
+                           BorderColor="Transparent"
+                           BackgroundColor="White"
+                           HeightRequest="130"
+                           IsClippedToBounds="True">
+
+                        <Grid>
+                            <Grid ColumnDefinitions="130, *">
+                                <Grid.Triggers>
+                                    <DataTrigger TargetType="Grid" Binding="{Binding Status}" Value="Wolna">
+                                        <Setter Property="IsVisible" Value="False"/>
+                                    </DataTrigger>
+                                </Grid.Triggers>
+
+                                <Image Grid.Column="0"
+                                       Source="{Binding Lokator.Zdjecie}"
+                                       Aspect="AspectFill"
+                                       HeightRequest="130"
+                                       WidthRequest="130"
+                                       VerticalOptions="Center"
+                                       HorizontalOptions="Center"/>
+
+                                <StackLayout Grid.Column="1" Padding="10" VerticalOptions="Center" Spacing="2">
+                                    
+                                    <Frame Padding="6,2" 
+                                           BackgroundColor="#E3F2FD" 
+                                           CornerRadius="6" 
+                                           HorizontalOptions="Start"
+                                           BorderColor="Transparent">
+                                        <Label Text="{Binding Numer}" FontSize="10" TextColor="#2196F3" FontAttributes="Bold"/>
+                                    </Frame>
+
+                                    <Label Text="{Binding Lokator.Imie}" 
+                                           FontSize="18" 
+                                           FontAttributes="Bold" 
+                                           TextColor="#333"
+                                           LineBreakMode="TailTruncation"/>
+                                    
+                                    <Label Text="{Binding Lokator.Rasa}" 
+                                           FontSize="12" 
+                                           TextColor="#777"
+                                           LineBreakMode="TailTruncation"/>
+
+                                    <Label Text="• ZAJĘTA" 
+                                           FontSize="10" 
+                                           TextColor="#F44336" 
+                                           FontAttributes="Bold"
+                                           Margin="0,5,0,0"/>
+                                </StackLayout>
+                            </Grid>
+
+
+                            <Grid IsVisible="False"> 
+                                <Grid.Triggers>
+                                    <DataTrigger TargetType="Grid" Binding="{Binding Status}" Value="Wolna">
+                                        <Setter Property="IsVisible" Value="True"/>
+                                    </DataTrigger>
+                                </Grid.Triggers>
+
+                                <BoxView WidthRequest="5" HorizontalOptions="Start" Color="#4CAF50" VerticalOptions="Fill"/>
+
+                                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="5">
+                                    <Label Text="🏠" FontSize="32" HorizontalOptions="Center"/>
+                                    <Label Text="WOLNE" FontSize="18" FontAttributes="Bold" TextColor="#4CAF50" HorizontalOptions="Center"/>
+                                    <Label Text="{Binding Numer}" FontSize="12" TextColor="#999" HorizontalOptions="Center"/>
+                                </VerticalStackLayout>
+                            </Grid>
+
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

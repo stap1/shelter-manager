@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ShelterManager.TasksPage"
+             Title="ZADANIA"
+             BackgroundColor="#F2F5F8">
+
+    <Grid RowDefinitions="Auto, Auto, *">
+
+        <VerticalStackLayout Grid.Row="0" Margin="0,20,0,10" Spacing="5">
+            <Label Text="HARMONOGRAM OPIEKI" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" TextColor="#333"/>
+            <BoxView HeightRequest="4" WidthRequest="60" Color="#9C27B0" HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+
+        <Frame Grid.Row="1" Margin="20,0" Padding="10" CornerRadius="15" BackgroundColor="White" HasShadow="False" BorderColor="#DDD">
+            <Grid ColumnDefinitions="*, Auto">
+                <Entry x:Name="EntryZadanie" 
+                       Placeholder="Wpisz nowe zadanie..." 
+                       TextColor="#333"
+                       PlaceholderColor="#999"
+                       BackgroundColor="Transparent"
+                       VerticalOptions="Center"/>
+                
+                <Button Grid.Column="1" 
+                        Text="DODAJ" 
+                        Clicked="OnAddTaskClicked"
+                        BackgroundColor="#9C27B0" 
+                        TextColor="White" 
+                        CornerRadius="10"
+                        HeightRequest="40"
+                        FontAttributes="Bold"/>
+            </Grid>
+        </Frame>
+
+        <CollectionView Grid.Row="2" x:Name="ListaZadan" Margin="20" SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame Margin="0,5" Padding="15" CornerRadius="10" HasShadow="True" BorderColor="Transparent" BackgroundColor="White">
+                        <Grid ColumnDefinitions="Auto, *">
+                            <CheckBox Grid.Column="0" 
+                                      IsChecked="{Binding CzyZrobione}" 
+                                      Color="#9C27B0" 
+                                      VerticalOptions="Center"
+                                      CheckedChanged="OnTaskCompleted"/>
+                            
+                            <Label Grid.Column="1" 
+                                   Text="{Binding Tresc}" 
+                                   VerticalOptions="Center" 
+                                   FontSize="16" 
+                                   TextColor="#333"
+                                   Margin="10,0,0,0">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding Source={RelativeSource AncestorType={x:Type CheckBox}}, Path=IsChecked}" Value="True">
+                                        <Setter Property="TextDecorations" Value="Strikethrough"/>
+                                        <Setter Property="TextColor" Value="Gray"/>
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

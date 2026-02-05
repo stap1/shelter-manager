@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ShelterManager.EditAnimalPage"
+             Title="Edycja Zwierzaka">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Frame HeightRequest="200" 
+                   WidthRequest="200" 
+                   CornerRadius="100" 
+                   HorizontalOptions="Center" 
+                   Padding="0" 
+                   IsClippedToBounds="True"
+                   BorderColor="#2196F3"
+                   BackgroundColor="#F0F0F0" 
+                   Margin="0,0,0,10">
+                
+                <Image Source="{Binding Zdjecie}" 
+                       Aspect="AspectFit" 
+                       HeightRequest="200" 
+                       WidthRequest="200"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"/>
+            </Frame>
+
+            <Label Text="Edytuj dane" 
+                   FontSize="22" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center" 
+                   TextColor="#333333"/>
+
+            <Label Text="Imię:" FontAttributes="Bold"/>
+            <Entry Text="{Binding Imie}" Placeholder="Imię" />
+            
+            <Label Text="Rasa:" FontAttributes="Bold"/>
+            <Entry Text="{Binding Rasa}" Placeholder="Rasa" />
+            
+            <Label Text="Status:" FontAttributes="Bold"/>
+            <Picker x:Name="PickerStatus" SelectedItem="{Binding Status}">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Kwarantanna</x:String>
+                        <x:String>Do adopcji</x:String>
+                        <x:String>W leczeniu</x:String>
+                        <x:String>Adoptowany</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+
+            <Button Text="Zapisz zmiany" 
+                    Clicked="OnSaveClicked" 
+                    BackgroundColor="#2196F3" 
+                    TextColor="White" 
+                    CornerRadius="10" 
+                    HeightRequest="50"
+                    Margin="0,20,0,0"/>
+                    
+            <Button Text="Anuluj" 
+                    Clicked="OnCancelClicked" 
+                    BackgroundColor="Gray"
+                    TextColor="White"
+                    CornerRadius="10"
+                    HeightRequest="50"
+                    Margin="0,0,0,20"/>
+                    
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
