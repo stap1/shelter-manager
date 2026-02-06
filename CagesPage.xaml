@@ -24,6 +24,15 @@
                    FontSize="16" 
                    TextColor="#7986CB" 
                    HorizontalOptions="Center"/>
+
+            <!-- Ponieważ Shell.NavBarIsVisible="False", dodajemy przycisk w treści strony -->
+            <Button Text="ZARZĄDZAJ BOKSAMI"
+                    Clicked="OnManageCagesClicked"
+                    HorizontalOptions="Center"
+                    BackgroundColor="#1A237E"
+                    TextColor="White"
+                    CornerRadius="12"
+                    Padding="16,10" />
         </VerticalStackLayout>
 
         <CollectionView Grid.Row="1" 
@@ -38,7 +47,7 @@
             </CollectionView.ItemsLayout>
 
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:Klatka">
+                <DataTemplate x:DataType="models:Cage">
                     <Grid>
 
                         <Border StrokeShape="RoundRectangle 20"
@@ -54,7 +63,7 @@
                                 <Grid Grid.Column="0">
                                     <BoxView Color="#F5F5F5"/>
                                     <ActivityIndicator IsRunning="True" Color="#2196F3" Scale="0.5"/>
-                                    <Image Source="{Binding Lokator.Zdjecie}"
+                                    <Image Source="{Binding PrimaryAnimal.Zdjecie}"
                                            Aspect="AspectFill"
                                            HorizontalOptions="Fill"
                                            VerticalOptions="Fill"/>
@@ -66,16 +75,16 @@
                                     </Border>
 
                                     <VerticalStackLayout Grid.Row="1" VerticalOptions="Center" Spacing="2">
-                                        <Label Text="{Binding Lokator.Imie}" FontSize="18" FontAttributes="Bold" TextColor="#263238" LineBreakMode="TailTruncation"/>
-                                        <Label Text="{Binding Lokator.Rasa}" FontSize="12" TextColor="#78909C" LineBreakMode="TailTruncation"/>
+                                        <Label Text="{Binding PrimaryAnimal.Imie}" FontSize="18" FontAttributes="Bold" TextColor="#263238" LineBreakMode="TailTruncation"/>
+                                        <Label Text="{Binding PrimaryAnimal.Rasa}" FontSize="12" TextColor="#78909C" LineBreakMode="TailTruncation"/>
                                     </VerticalStackLayout>
 
-                                    <Label Grid.Row="2" Text="🔴 ZAJĘTA" FontSize="10" TextColor="#D32F2F" FontAttributes="Bold" HorizontalOptions="End"/>
+                                    <Label Grid.Row="2" Text="{Binding OccupancyText, StringFormat='🔴 ZAJĘTE {0}'}" FontSize="10" TextColor="#D32F2F" FontAttributes="Bold" HorizontalOptions="End"/>
                                 </Grid>
                             </Grid>
 
                             <Border.Triggers>
-                                <DataTrigger TargetType="Border" Binding="{Binding CzyZajeta}" Value="False">
+                                <DataTrigger TargetType="Border" Binding="{Binding IsEmpty}" Value="True">
                                     <Setter Property="IsVisible" Value="False"/>
                                 </DataTrigger>
                             </Border.Triggers>
@@ -104,7 +113,7 @@
                             </Grid>
 
                             <Border.Triggers>
-                                <DataTrigger TargetType="Border" Binding="{Binding CzyZajeta}" Value="False">
+                                <DataTrigger TargetType="Border" Binding="{Binding IsEmpty}" Value="True">
                                     <Setter Property="IsVisible" Value="True"/>
                                 </DataTrigger>
                             </Border.Triggers>

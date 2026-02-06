@@ -8,7 +8,22 @@ namespace ShelterManager.Data.Repositories;
 /// </summary>
 public interface ICageRepository
 {
-    ObservableCollection<Klatka> Cages { get; }
+    ObservableCollection<Cage> Cages { get; }
+
+    /// <summary>
+    /// Dodaje nowy boks.
+    /// </summary>
+    void AddCage(Cage cage);
+
+    /// <summary>
+    /// Usuwa boks, o ile jest pusty.
+    /// Zwraca false, jeśli boks jest zajęty.
+    /// </summary>
+    bool TryRemoveCage(Cage cage);
+
+    /// <summary>
+    /// Zapis zmian w pliku.
+    /// </summary>
     void SaveChanges();
     void Reload();
 }

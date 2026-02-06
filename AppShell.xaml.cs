@@ -7,6 +7,9 @@ public partial class AppShell : Shell
     public AppShell()
     {
         InitializeComponent();
+
+        // Rejestrujemy trasy dla stron spoza TabBar (Shell navigation).
+        Routing.RegisterRoute(nameof(ManageCagesPage), typeof(ManageCagesPage));
     }
 
     protected override async void OnNavigating(ShellNavigatingEventArgs args)

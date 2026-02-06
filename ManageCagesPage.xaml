@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:ShelterManager.Models"
+             x:Class="ShelterManager.ManageCagesPage"
+             Title="Zarządzanie boksami"
+             BackgroundColor="#F4F7FA">
+
+    <Grid MaximumWidthRequest="900" HorizontalOptions="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Prosty pasek nagłówka (Shell.NavBarIsVisible="False") -->
+        <Grid Grid.Row="0" Padding="20,30,20,15" ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto">
+            <Button Grid.Row="0" Grid.Column="0"
+                    Text="← Powrót"
+                    Clicked="OnBackClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="#1A237E"
+                    Padding="0"/>
+
+            <Label Grid.Row="0" Grid.Column="1"
+                   Text="ZARZĄDZANIE BOKSAMI"
+                   FontSize="22"
+                   FontAttributes="Bold"
+                   TextColor="#1A237E"
+                   HorizontalTextAlignment="Center"
+                   VerticalTextAlignment="Center"/>
+
+            <Button Grid.Row="0" Grid.Column="2"
+                    Text="+ Dodaj"
+                    Clicked="OnAddCageClicked"
+                    BackgroundColor="#1A237E"
+                    TextColor="White"
+                    CornerRadius="12"
+                    Padding="16,10"/>
+
+            <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                   Text="Możesz dodawać/usuwać boksy i zmieniać pojemność. Usuń boks tylko gdy jest pusty."
+                   FontSize="12"
+                   TextColor="#7986CB"
+                   HorizontalTextAlignment="Center"
+                   Margin="0,10,0,0"/>
+        </Grid>
+
+        <CollectionView Grid.Row="1" ItemsSource="{Binding Cages}" Margin="20,0,20,20">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="12"/>
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Cage">
+                    <Border StrokeShape="RoundRectangle 16"
+                            BackgroundColor="White"
+                            StrokeThickness="0"
+                            Padding="16">
+                        <Border.Shadow>
+                            <Shadow Brush="#546E7A" Offset="0,4" Opacity="0.10" Radius="8"/>
+                        </Border.Shadow>
+
+                        <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto">
+                            <Label Grid.Row="0" Grid.Column="0"
+                                   Text="{Binding Numer, StringFormat='Boks {0}'}"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="#263238"/>
+
+                            <Label Grid.Row="1" Grid.Column="0"
+                                   Text="{Binding Capacity, StringFormat='Pojemność: {0}'}"
+                                   FontSize="12"
+                                   TextColor="#78909C"/>
+
+                            <Label Grid.Row="2" Grid.Column="0"
+                                   Text="{Binding OccupancyText, StringFormat='Zajęte: {0}'}"
+                                   FontSize="12"
+                                   TextColor="#78909C"/>
+
+                            <VerticalStackLayout Grid.Row="0" Grid.RowSpan="3" Grid.Column="1" Spacing="8" HorizontalOptions="End">
+                                <Button Text="Edytuj pojemność"
+                                        Clicked="OnEditCapacityClicked"
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="#E3F2FD"
+                                        TextColor="#1565C0"
+                                        CornerRadius="10"
+                                        Padding="12,8"/>
+
+                                <Button Text="Usuń"
+                                        Clicked="OnDeleteCageClicked"
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="#FFEBEE"
+                                        TextColor="#C62828"
+                                        CornerRadius="10"
+                                        Padding="12,8"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

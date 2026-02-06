@@ -10,7 +10,7 @@ public partial class CagesPage : ContentPage
     private readonly ICageRepository _cageRepository;
 
     // Kolekcja z repozytorium, podpięta pod XAML
-    public ObservableCollection<Klatka> Klatki { get; }
+    public ObservableCollection<Cage> Klatki { get; }
 
     public CagesPage()
     {
@@ -32,5 +32,11 @@ public partial class CagesPage : ContentPage
         // W razie gdyby inne zakładki zmieniły dane (np. status zwierzęcia),
         // odświeżamy stan z pliku.
         _cageRepository.Reload();
+    }
+
+    private async void OnManageCagesClicked(object sender, EventArgs e)
+    {
+        // Przechodzimy do zarządzania boksami (dodawanie/usuwanie/pojemność)
+        await Shell.Current.GoToAsync(nameof(ManageCagesPage));
     }
 }

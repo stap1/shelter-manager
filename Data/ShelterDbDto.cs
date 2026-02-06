@@ -9,10 +9,10 @@ namespace ShelterManager.Data;
 /// </summary>
 internal sealed class ShelterDbDto
 {
-    public int SchemaVersion { get; set; } = 1;
+    public int SchemaVersion { get; set; } = 2;
 
     public ObservableCollection<Zwierze> Animals { get; set; } = new();
-    public ObservableCollection<Klatka> Cages { get; set; } = new();
+    public ObservableCollection<Cage> Cages { get; set; } = new();
     public ObservableCollection<Zasob> Resources { get; set; } = new();
     public ObservableCollection<Zadanie> Tasks { get; set; } = new();
 }

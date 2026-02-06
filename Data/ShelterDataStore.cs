@@ -18,7 +18,7 @@ public sealed class ShelterDataStore
     private readonly string _legacyAnimalsFilePath;
 
     public ObservableCollection<Zwierze> Animals { get; } = new();
-    public ObservableCollection<Klatka> Cages { get; } = new();
+    public ObservableCollection<Cage> Cages { get; } = new();
     public ObservableCollection<Zasob> Resources { get; } = new();
     public ObservableCollection<Zadanie> Tasks { get; } = new();
 
@@ -61,10 +61,10 @@ public sealed class ShelterDataStore
             var dto = new ShelterDbDto
             {
                 Animals = new ObservableCollection<Zwierze>(Animals),
-                Cages = new ObservableCollection<Klatka>(Cages),
+                Cages = new ObservableCollection<Cage>(Cages),
                 Resources = new ObservableCollection<Zasob>(Resources),
                 Tasks = new ObservableCollection<Zadanie>(Tasks),
-                SchemaVersion = 1
+                SchemaVersion = 2
             };
 
             try
@@ -138,10 +138,10 @@ public sealed class ShelterDataStore
             var dto = new ShelterDbDto
             {
                 Animals = new ObservableCollection<Zwierze>(animals),
-                Cages = new ObservableCollection<Klatka>(),
+                Cages = new ObservableCollection<Cage>(),
                 Resources = new ObservableCollection<Zasob>(),
                 Tasks = new ObservableCollection<Zadanie>(),
-                SchemaVersion = 1
+                SchemaVersion = 2
             };
 
             var newJson = JsonConvert.SerializeObject(dto, Formatting.Indented);
@@ -194,7 +194,8 @@ public sealed class ShelterDataStore
             changed = true;
         }
 
-        // Klatki: domyślnie 10 boksów. Jeśli ich nie ma, tworzymy.
+        // Boksy: domyślnie 10 boksów. Jeśli ich nie ma, tworzymy.
+        // Lista boksów jest przechowywana w danych (shelter_db.json), zamiast generować ją "na żywo".
         if (Cages.Count == 0)
         {
             var mieszkancy = Animals
@@ -203,11 +204,11 @@ public sealed class ShelterDataStore
 
             for (int i = 1; i <= 10; i++)
             {
-                var cage = new Klatka { Numer = $"{i}" };
+                var cage = new Cage { Numer = i, Capacity = 1 };
+
                 if (i <= mieszkancy.Count)
-                {
-                    cage.LokatorId = mieszkancy[i - 1].Id;
-                }
+                    cage.OccupiedAnimalIds.Add(mieszkancy[i - 1].Id);
+
                 Cages.Add(cage);
             }
 
@@ -243,15 +244,23 @@ public sealed class ShelterDataStore
 
     private void ResolveCageOccupants()
     {
-        // Uzupełniamy Lokator na podstawie LokatorId.
-        // Lokator jest [JsonIgnore], więc po wczytaniu wymaga ponownego powiązania.
+        // Powiązanie OccupiedAnimalIds z obiektami zwierząt na potrzeby UI.
+        // Lista OccupiedAnimals jest [JsonIgnore], więc po wczytaniu wymaga ponownego wypełnienia.
         var byId = Animals.ToDictionary(a => a.Id, a => a);
 
         foreach (var cage in Cages)
         {
-            cage.Lokator = cage.LokatorId is Guid id && byId.TryGetValue(id, out var animal)
-                ? animal
-                : null;
+            cage.OccupiedAnimals.Clear();
+
+            foreach (var animalId in cage.OccupiedAnimalIds.ToList())
+            {
+                if (byId.TryGetValue(animalId, out var animal))
+                    cage.OccupiedAnimals.Add(animal);
+            }
+
+            // Zabezpieczenie: jeśli ktoś ustawi pojemność < 1 w JSON, normalizujemy.
+            if (cage.Capacity < 1)
+                cage.Capacity = 1;
         }
     }
 }
