@@ -1,5 +1,9 @@
-﻿using CommunityToolkit.Maui; // Wymaga zainstalowanego pakietu CommunityToolkit.Maui
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using CommunityToolkit.Maui; // Wymaga zainstalowanego pakietu CommunityToolkit.Maui
+using ShelterManager.Data;
+using ShelterManager.Data.Repositories;
+using ShelterManager.Infrastructure;
 
 namespace ShelterManager;
 
@@ -11,7 +15,7 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             // To naprawia błędy inicjalizacji Toolkitu przy starcie
-            .UseMauiCommunityToolkit()
+            .UseMauiCommunityToolkit() 
             .ConfigureFonts(fonts =>
             {
                 // Upewnij się, że te pliki istnieją w Resources/Fonts!
@@ -24,6 +28,17 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        return builder.Build();
+
+        // Rejestracja warstwy dostępu do danych (jeden plik JSON: shelter_db.json)
+        builder.Services.AddSingleton<ShelterDataStore>();
+        builder.Services.AddSingleton<IAnimalRepository, AnimalFileRepository>();
+        builder.Services.AddSingleton<ICageRepository, CageFileRepository>();
+        builder.Services.AddSingleton<IResourceRepository, ResourceFileRepository>();
+        builder.Services.AddSingleton<ITaskRepository, TaskFileRepository>();
+
+        var app = builder.Build();
+        // Umożliwia pobieranie serwisów w stronach tworzonych przez DataTemplate.
+        ServiceLocator.Services = app.Services;
+        return app;
     }
 }

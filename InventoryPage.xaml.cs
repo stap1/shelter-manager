@@ -1,41 +1,31 @@
-using ShelterManager.Models; // Upewnij się, że to pasuje do Twojej przestrzeni nazw
 using System.Collections.ObjectModel;
+using ShelterManager.Data.Repositories;
+using ShelterManager.Infrastructure;
+using ShelterManager.Models;
 
 namespace ShelterManager;
 
-// Jeśli nie masz osobnego pliku w Models, możesz odkomentować tę klasę tutaj:
-/*
-public class Zasob
-{
-    public string Nazwa { get; set; } = string.Empty;
-    public int Ilosc { get; set; }
-}
-*/
-
 public partial class InventoryPage : ContentPage
 {
-    public ObservableCollection<Zasob> Zasoby { get; set; } = new();
+    private readonly IResourceRepository _resourceRepository;
+
+    // Kolekcja z repozytorium, podpięta pod XAML
+    public ObservableCollection<Zasob> Zasoby { get; }
 
     public InventoryPage()
     {
         InitializeComponent();
-        GenerujDane();
 
-        // Teraz to zadziała, bo w XAML dodaliśmy x:Name="ListaZasobow"
+        _resourceRepository = ServiceLocator.GetRequiredService<IResourceRepository>();
+        Zasoby = _resourceRepository.Resources;
+
         BindingContext = this;
-        // Alternatywnie: ListaZasobow.ItemsSource = Zasoby; (ale BindingContext jest elegantszy przy {Binding Zasoby} w XAML)
     }
 
-    private void GenerujDane()
+    protected override void OnAppearing()
     {
-        if (Zasoby.Count == 0)
-        {
-            Zasoby.Add(new Zasob { Nazwa = "Karma sucha (Pies)", Ilosc = 20 });
-            Zasoby.Add(new Zasob { Nazwa = "Karma mokra (Kot)", Ilosc = 15 });
-            Zasoby.Add(new Zasob { Nazwa = "Podkłady higieniczne", Ilosc = 5 });
-            Zasoby.Add(new Zasob { Nazwa = "Szampon", Ilosc = 1 });
-            Zasoby.Add(new Zasob { Nazwa = "Smycze", Ilosc = 8 });
-        }
+        base.OnAppearing();
+        _resourceRepository.Reload();
     }
 
     // Obsługa przycisku "-" (w XAML: OnMinusClicked)
@@ -45,11 +35,12 @@ public partial class InventoryPage : ContentPage
         {
             if (z.Ilosc > 0)
             {
-                z.Ilosc--;
+                z.Ilosc -= 1;
+                _resourceRepository.SaveChanges();
                 OdswiezListe();
 
                 // AUTOMATYCZNE POWIADOMIENIE (Punkt 9)
-                if (z.Ilosc == 0)
+                if (z.Ilosc <= 0)
                 {
                     try { Vibration.Default.Vibrate(TimeSpan.FromMilliseconds(100)); } catch { }
                     await DisplayAlert("⚠️ NISKI STAN!", $"Produkt: {z.Nazwa} właśnie się skończył! Uzupełnij zapasy.", "OK");
@@ -63,7 +54,8 @@ public partial class InventoryPage : ContentPage
     {
         if (sender is Button btn && btn.CommandParameter is Zasob z)
         {
-            z.Ilosc++;
+            z.Ilosc += 1;
+            _resourceRepository.SaveChanges();
             OdswiezListe();
         }
     }
@@ -77,7 +69,8 @@ public partial class InventoryPage : ContentPage
             if (answer)
             {
                 Zasoby.Remove(z);
-                OdswiezListe(); // Ważne przy CollectionView w GridItemsLayout, czasem trzeba odświeżyć
+                _resourceRepository.SaveChanges();
+                OdswiezListe();
             }
         }
     }
@@ -89,9 +82,10 @@ public partial class InventoryPage : ContentPage
         if (!string.IsNullOrWhiteSpace(nazwa))
         {
             string iloscStr = await DisplayPromptAsync("Ilość", "Podaj ilość początkową:", initialValue: "0", keyboard: Keyboard.Numeric);
-            if (int.TryParse(iloscStr, out int ilosc))
+            if (double.TryParse(iloscStr, out double ilosc))
             {
-                Zasoby.Add(new Zasob { Nazwa = nazwa, Ilosc = ilosc });
+                Zasoby.Add(new Zasob { Nazwa = nazwa.Trim(), Ilosc = ilosc, Jednostka = "szt." });
+                _resourceRepository.SaveChanges();
             }
         }
     }
@@ -99,7 +93,6 @@ public partial class InventoryPage : ContentPage
     // Pomocnicza metoda do wymuszenia odświeżenia widoku (czasem potrzebna w MAUI przy zmianach wewnątrz obiektów)
     private void OdswiezListe()
     {
-        // Trik na odświeżenie CollectionView
         var temp = ListaZasobow.ItemsSource;
         ListaZasobow.ItemsSource = null;
         ListaZasobow.ItemsSource = temp;

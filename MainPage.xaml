@@ -126,13 +126,14 @@
                                         <ActivityIndicator IsRunning="True" Color="#2196F3" Scale="0.5"/>
                                         <Image Source="{Binding Zdjecie}" Aspect="AspectFill" HorizontalOptions="Fill" VerticalOptions="Fill"/>
                                     </Grid>
-                                    <VerticalStackLayout Grid.Column="1" Padding="20,15" VerticalOptions="Center" Spacing="4">
-                                        <Label Text="{Binding Imie}" FontSize="20" FontAttributes="Bold" TextColor="#263238"/>
-                                        <Label Text="{Binding Rasa}" FontSize="14" TextColor="#78909C"/>
-                                        <Border HorizontalOptions="Start" Margin="0,6,0,0" StrokeShape="RoundRectangle 8" StrokeThickness="0" BackgroundColor="{Binding Status, Converter={StaticResource StatusToColorConverter}}" Padding="10,4">
-                                            <Label Text="{Binding Status}" TextColor="White" FontSize="11" FontAttributes="Bold" TextTransform="Uppercase"/>
-                                        </Border>
-                                    </VerticalStackLayout>
+									<VerticalStackLayout Grid.Column="1" Padding="20,15" VerticalOptions="Center" Spacing="4">
+										<Label Text="{Binding Imie}" FontSize="20" FontAttributes="Bold" TextColor="#263238"/>
+										<Label Text="{Binding GatunekOpis}" FontSize="14" TextColor="#78909C"/>
+										<Label Text="{Binding Rasa}" FontSize="14" TextColor="#78909C"/>
+										<Border HorizontalOptions="Start" Margin="0,6,0,0" StrokeShape="RoundRectangle 8" StrokeThickness="0" BackgroundColor="{Binding Status, Converter={StaticResource StatusToColorConverter}}" Padding="10,4">
+											<Label Text="{Binding StatusOpis}" TextColor="White" FontSize="11" FontAttributes="Bold" TextTransform="Uppercase"/>
+										</Border>
+									</VerticalStackLayout>
                                     <Label Grid.Column="2" Text="&#8942;" FontSize="28" TextColor="#CFD8DC" VerticalOptions="Start" Padding="0,10,15,0"/>
                                 </Grid>
                                 <FlyoutBase.ContextFlyout>

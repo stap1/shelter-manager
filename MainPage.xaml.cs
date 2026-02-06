@@ -1,37 +1,29 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using Newtonsoft.Json;
+﻿using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.Messaging;
+using ShelterManager.Data.Repositories;
+using ShelterManager.Infrastructure;
 using ShelterManager.Models;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 namespace ShelterManager;
 
 public partial class MainPage : ContentPage
 {
-    // Główna kolekcja danych (baza w pamięci)
-    public ObservableCollection<Zwierze> Zwierzeta { get; } = new();
+    private readonly IAnimalRepository _animalRepository;
+
+    // Główna kolekcja danych (źródło repozytorium)
+    public ObservableCollection<Zwierze> Zwierzeta { get; }
 
     // Kolekcja dla UI (to, co widzi użytkownik - może być przefiltrowane)
     public ObservableCollection<Zwierze> FiltrowaneZwierzeta { get; set; } = new();
-
-    private readonly string filePath = Path.Combine(FileSystem.AppDataDirectory, "shelter_data.json");
 
     public MainPage()
     {
         InitializeComponent();
         BindingContext = this;
 
-        WczytajDane();
-
-        // Dane startowe (tylko przy pierwszym uruchomieniu aplikacji w ogóle)
-        if (Zwierzeta.Count == 0)
-        {
-            Zwierzeta.Add(new Zwierze { Imie = "Burek", Rasa = "Owczarek", Status = "Kwarantanna", Zdjecie = "https://loremflickr.com/400/400/dog,owczarek?lock=1" });
-            Zwierzeta.Add(new Zwierze { Imie = "Mruczek", Rasa = "Dachowiec", Status = "Kwarantanna", Zdjecie = "https://loremflickr.com/400/400/cat,dachowiec?lock=2" });
-            Zwierzeta.Add(new Zwierze { Imie = "Reksio", Rasa = "Labrador", Status = "Do adopcji", Zdjecie = "https://loremflickr.com/400/400/dog,labrador?lock=3" });
-            ZapiszDane();
-            AktualizujWidok();
-        }
+        _animalRepository = ServiceLocator.GetRequiredService<IAnimalRepository>();
+        Zwierzeta = _animalRepository.Animals;
+        AktualizujWidok();
 
         // --- OBSŁUGA KOMUNIKATÓW (MESSENGER) ---
 
@@ -41,7 +33,7 @@ public partial class MainPage : ContentPage
             Dispatcher.Dispatch(() =>
             {
                 Zwierzeta.Add(m);
-                ZapiszDane();
+                _animalRepository.SaveChanges();
                 AktualizujWidok();
             });
         });
@@ -54,7 +46,7 @@ public partial class MainPage : ContentPage
                 // Dispatcher zapewnia bezpieczne odświeżenie UI bez "Task.Delay"
                 Dispatcher.Dispatch(() =>
                 {
-                    ZapiszDane();
+					_animalRepository.SaveChanges();
                     AktualizujWidok();
                 });
             }
@@ -86,7 +78,7 @@ public partial class MainPage : ContentPage
             LblTotalAnimals.Text = Zwierzeta.Count.ToString();
 
         if (LblInQuarantine != null)
-            LblInQuarantine.Text = Zwierzeta.Count(z => z.Status == "Kwarantanna").ToString();
+			LblInQuarantine.Text = Zwierzeta.Count(z => z.Status == AnimalStatus.Quarantine).ToString();
 
         // 2. Odświeżenie listy (z uwzględnieniem wpisanego tekstu w szukajce)
         string obecnyTekst = SearchBarZwierzeta?.Text ?? "";
@@ -122,46 +114,9 @@ public partial class MainPage : ContentPage
             if (potwierdzenie)
             {
                 Zwierzeta.Remove(zwierz);
-                ZapiszDane();
+                _animalRepository.SaveChanges();
                 AktualizujWidok();
             }
         }
-    }
-
-    // Zapis do pliku JSON
-    private void ZapiszDane()
-    {
-        try
-        {
-            var json = JsonConvert.SerializeObject(Zwierzeta);
-            File.WriteAllText(filePath, json);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Błąd zapisu: {ex.Message}");
-        }
-    }
-
-    // Odczyt z pliku JSON
-    private void WczytajDane()
-    {
-        if (File.Exists(filePath))
-        {
-            try
-            {
-                var json = File.ReadAllText(filePath);
-                var wczytane = JsonConvert.DeserializeObject<ObservableCollection<Zwierze>>(json);
-                if (wczytane != null)
-                {
-                    Zwierzeta.Clear();
-                    foreach (var z in wczytane) Zwierzeta.Add(z);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Błąd wczytywania: {ex.Message}");
-            }
-        }
-        AktualizujWidok();
     }
 }

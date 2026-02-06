@@ -4,16 +4,17 @@ public class Zwierze : BaseModel
 {
     // Pola prywatne (schowki na dane)
     private string _imie = string.Empty;
+    private AnimalSpecies _gatunek = AnimalSpecies.Unknown;
     private string _rasa = string.Empty;
-    private string _status = string.Empty;
+    private AnimalStatus _status = AnimalStatus.Unknown;
     private string _zdjecie = string.Empty;
-
+    
     // --- NOWE POLA ---
     private string _wiek = string.Empty;
     private string _historiaMedyczna = string.Empty;
 
     // Właściwości publiczne z powiadomieniami (OnPropertyChanged)
-
+    
     public string Imie
     {
         get => _imie;
@@ -22,7 +23,7 @@ public class Zwierze : BaseModel
             if (_imie != value)
             {
                 _imie = value;
-                OnPropertyChanged();
+                OnPropertyChanged(); 
             }
         }
     }
@@ -40,7 +41,43 @@ public class Zwierze : BaseModel
         }
     }
 
-    public string Status
+    /// <summary>
+    /// Gatunek zwierzęcia.
+    /// Zapisywany w JSON jako enum name, ale wczytuje też legacy PL ("Pies"/"Kot"/"Inne").
+    /// </summary>
+    [Newtonsoft.Json.JsonConverter(typeof(AnimalSpeciesJsonConverter))]
+    public AnimalSpecies Gatunek
+    {
+        get => _gatunek;
+        set
+        {
+            if (_gatunek != value)
+            {
+                _gatunek = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(GatunekOpis));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tekst do UI (nie zapisujemy do JSON).
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    public string GatunekOpis => Gatunek switch
+    {
+        AnimalSpecies.Dog => "Pies",
+        AnimalSpecies.Cat => "Kot",
+        AnimalSpecies.Other => "Inne",
+        _ => "Nieznany"
+    };
+
+    /// <summary>
+    /// Status zwierzęcia.
+    /// Zapisywany w JSON jako enum name, ale wczytuje też legacy PL ("Kwarantanna" itd.).
+    /// </summary>
+    [Newtonsoft.Json.JsonConverter(typeof(AnimalStatusJsonConverter))]
+    public AnimalStatus Status
     {
         get => _status;
         set
@@ -49,9 +86,23 @@ public class Zwierze : BaseModel
             {
                 _status = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(StatusOpis));
             }
         }
     }
+
+    /// <summary>
+    /// Tekst do UI (nie zapisujemy do JSON).
+    /// </summary>
+    [Newtonsoft.Json.JsonIgnore]
+    public string StatusOpis => Status switch
+    {
+        AnimalStatus.Quarantine => "Kwarantanna",
+        AnimalStatus.Treatment => "W leczeniu",
+        AnimalStatus.ForAdoption => "Do adopcji",
+        AnimalStatus.Adopted => "Adoptowany",
+        _ => "Nieznany"
+    };
 
     public string Zdjecie
     {

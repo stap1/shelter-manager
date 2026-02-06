@@ -38,16 +38,11 @@
             <Entry Text="{Binding Rasa}" Placeholder="Rasa" />
             
             <Label Text="Status:" FontAttributes="Bold"/>
-            <Picker x:Name="PickerStatus" SelectedItem="{Binding Status}">
-                <Picker.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Kwarantanna</x:String>
-                        <x:String>Do adopcji</x:String>
-                        <x:String>W leczeniu</x:String>
-                        <x:String>Adoptowany</x:String>
-                    </x:Array>
-                </Picker.ItemsSource>
-            </Picker>
+			<!--
+				Status jest teraz enumem (AnimalStatus). ItemsSource ustawiamy w code-behind,
+				żeby uniknąć ręcznych stringów i literówek.
+			-->
+			<Picker x:Name="PickerStatus" />
 
             <Button Text="Zapisz zmiany" 
                     Clicked="OnSaveClicked" 

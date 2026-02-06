@@ -33,20 +33,25 @@ public partial class AddAnimalPage : ContentPage
         string rasa = string.IsNullOrWhiteSpace(EntryRasa.Text) ? "Mieszaniec" : EntryRasa.Text.Trim();
 
         // Bezpieczne pobranie wartości z Pickerów
-        string gatunek = PickerGatunek.SelectedItem?.ToString() ?? "Pies";
-        string status = PickerStatus.SelectedItem?.ToString() ?? "Kwarantanna";
+		string gatunekText = PickerGatunek.SelectedItem?.ToString() ?? "Pies";
+		string statusText = PickerStatus.SelectedItem?.ToString() ?? "Kwarantanna";
+
+		// Mapujemy tekst z UI na enumy, żeby uniknąć literówek w danych.
+		AnimalSpecies gatunek = ParseSpecies(gatunekText);
+		AnimalStatus status = ParseStatus(statusText);
 
         string wiek = string.IsNullOrWhiteSpace(EntryWiek.Text) ? "Nieznany" : EntryWiek.Text.Trim();
         string historia = string.IsNullOrWhiteSpace(EntryHistoria.Text) ? "Brak wpisów" : EntryHistoria.Text.Trim();
 
         // 3. --- INTELLIGENTNE DOBIERANIE ZDJĘCIA (Poprawione) ---
         // Budujemy URL w oparciu o gatunek + rasę dla lepszych wyników
-        string zdjecieUrl = GenerujUrlZdjecia(gatunek, rasa);
+		string zdjecieUrl = GenerujUrlZdjecia(gatunek, rasa);
 
         // 4. Tworzenie obiektu
         var noweZwierze = new Zwierze
         {
             Imie = imie,
+			Gatunek = gatunek,
             Rasa = rasa,
             Status = status,
             Zdjecie = zdjecieUrl,
@@ -60,13 +65,13 @@ public partial class AddAnimalPage : ContentPage
     }
 
     // Wydzielona metoda do generowania URL - czyściej i bezpieczniej
-    private string GenerujUrlZdjecia(string gatunek, string rasa)
+	private string GenerujUrlZdjecia(AnimalSpecies gatunek, string rasa)
     {
         string rasaLow = rasa.ToLower();
         string tagi = "animal"; // Domyślny tag
 
         // Logika dla PSÓW
-        if (gatunek == "Pies")
+		if (gatunek == AnimalSpecies.Dog)
         {
             tagi = "dog"; // Baza to pies
 
@@ -84,7 +89,7 @@ public partial class AddAnimalPage : ContentPage
             else if (rasaLow.Contains("kundel") || rasaLow.Contains("mieszaniec")) tagi = "dog,mongrel";
         }
         // Logika dla KOTÓW
-        else if (gatunek == "Kot")
+		else if (gatunek == AnimalSpecies.Cat)
         {
             tagi = "cat"; // Baza to kot
 
@@ -111,4 +116,29 @@ public partial class AddAnimalPage : ContentPage
         // Format URL: 400x400 jest szybsze niż 500x500 i wystarcza na telefon/okno
         return $"https://loremflickr.com/400/400/{tagi}?lock={losowyNumer}";
     }
+
+	private static AnimalSpecies ParseSpecies(string raw)
+	{
+		string key = (raw ?? string.Empty).Trim().ToLowerInvariant();
+		return key switch
+		{
+			"pies" => AnimalSpecies.Dog,
+			"kot" => AnimalSpecies.Cat,
+			"inne" => AnimalSpecies.Other,
+			_ => Enum.TryParse<AnimalSpecies>(raw, ignoreCase: true, out var parsed) ? parsed : AnimalSpecies.Unknown
+		};
+	}
+
+	private static AnimalStatus ParseStatus(string raw)
+	{
+		string key = (raw ?? string.Empty).Trim().ToLowerInvariant();
+		return key switch
+		{
+			"kwarantanna" => AnimalStatus.Quarantine,
+			"w leczeniu" => AnimalStatus.Treatment,
+			"do adopcji" => AnimalStatus.ForAdoption,
+			"adoptowany" => AnimalStatus.Adopted,
+			_ => Enum.TryParse<AnimalStatus>(raw, ignoreCase: true, out var parsed) ? parsed : AnimalStatus.Unknown
+		};
+	}
 }
