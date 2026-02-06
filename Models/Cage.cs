@@ -26,6 +26,9 @@ public sealed class Cage : BaseModel
     {
         // Gdy lista się zmienia, odświeżamy pochodne właściwości w UI.
         _occupiedAnimalIds.CollectionChanged += OccupiedAnimalIds_CollectionChanged;
+
+        // Gdy zmienia się lista obiektów (np. po Reload()), informujemy UI o PrimaryAnimal.
+        OccupiedAnimals.CollectionChanged += OccupiedAnimals_CollectionChanged;
     }
 
     public int Numer
@@ -122,5 +125,12 @@ public sealed class Cage : BaseModel
     private void OccupiedAnimalIds_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
         RaiseOccupancyChanged();
+    }
+
+    private void OccupiedAnimals_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        // PrimaryAnimal zależy od OccupiedAnimals, a ta lista nie jest powiązana z OccupiedAnimalIds w 100%.
+        // Przykład: po Reload() wypełniamy OccupiedAnimals na podstawie Id.
+        OnPropertyChanged(nameof(PrimaryAnimal));
     }
 }

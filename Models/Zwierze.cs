@@ -13,6 +13,10 @@ public class Zwierze : BaseModel
     private string _wiek = string.Empty;
     private string _historiaMedyczna = string.Empty;
 
+    // Soft-delete (Archiwum) - przydaje się w wymaganiach o archiwizacji.
+    // Domyślnie false, żeby nie psuć istniejących danych.
+    private bool _isArchived;
+
     // Właściwości publiczne z powiadomieniami (OnPropertyChanged)
     
     public string Imie
@@ -140,6 +144,23 @@ public class Zwierze : BaseModel
             if (_historiaMedyczna != value)
             {
                 _historiaMedyczna = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Czy zwierzę jest zarchiwizowane (soft delete).
+    /// Uwaga: logika wyświetlania archiwum może być dopięta osobno.
+    /// </summary>
+    public bool IsArchived
+    {
+        get => _isArchived;
+        set
+        {
+            if (_isArchived != value)
+            {
+                _isArchived = value;
                 OnPropertyChanged();
             }
         }

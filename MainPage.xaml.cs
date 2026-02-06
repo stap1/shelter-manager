@@ -3,12 +3,14 @@ using CommunityToolkit.Mvvm.Messaging;
 using ShelterManager.Data.Repositories;
 using ShelterManager.Infrastructure;
 using ShelterManager.Models;
+using ShelterManager.Services;
 
 namespace ShelterManager;
 
 public partial class MainPage : ContentPage
 {
     private readonly IAnimalRepository _animalRepository;
+    private readonly CageAllocationService _cageAllocationService;
 
     // Główna kolekcja danych (źródło repozytorium)
     public ObservableCollection<Zwierze> Zwierzeta { get; }
@@ -22,6 +24,7 @@ public partial class MainPage : ContentPage
         BindingContext = this;
 
         _animalRepository = ServiceLocator.GetRequiredService<IAnimalRepository>();
+        _cageAllocationService = ServiceLocator.GetRequiredService<CageAllocationService>();
         Zwierzeta = _animalRepository.Animals;
         AktualizujWidok();
 
@@ -113,6 +116,8 @@ public partial class MainPage : ContentPage
             bool potwierdzenie = await DisplayAlert("Potwierdzenie", $"Czy na pewno chcesz trwale usunąć: {zwierz.Imie}?", "Tak", "Nie");
             if (potwierdzenie)
             {
+				// Utrzymujemy spójność danych: jeśli zwierzę było w boksie, zdejmujemy je.
+				_cageAllocationService.RemoveAnimalFromCage(zwierz.Id);
                 Zwierzeta.Remove(zwierz);
                 _animalRepository.SaveChanges();
                 AktualizujWidok();

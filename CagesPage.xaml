@@ -98,7 +98,7 @@
                                 HeightRequest="140"
                                 IsVisible="False">
 
-                            <Grid RowDefinitions="*, Auto, Auto" Padding="15">
+						<Grid RowDefinitions="*, Auto, Auto, Auto" Padding="15">
                                 <Label Grid.Row="0" Text="🏠" FontSize="40" HorizontalOptions="Center" VerticalOptions="Center" Opacity="0.8"/>
 
                                 <Label Grid.Row="1" 
@@ -109,7 +109,15 @@
                                        HorizontalOptions="Center" 
                                        CharacterSpacing="1"/>
 
-                                <Label Grid.Row="2" Text="{Binding Numer, StringFormat='Boks nr {0}'}" TextColor="#66BB6A" FontSize="12" HorizontalOptions="Center" Margin="0,5,0,0"/>
+
+							<Label Grid.Row="2"
+							       Text="{Binding OccupancyText, StringFormat='Obłożenie: {0}'}"
+							       TextColor="#66BB6A"
+							       FontSize="12"
+							       HorizontalOptions="Center"
+							       Margin="0,5,0,0"/>
+
+							<Label Grid.Row="3" Text="{Binding Numer, StringFormat='Boks nr {0}'}" TextColor="#66BB6A" FontSize="12" HorizontalOptions="Center" Margin="0,2,0,0"/>
                             </Grid>
 
                             <Border.Triggers>

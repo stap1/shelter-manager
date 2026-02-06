@@ -198,8 +198,8 @@ public sealed class ShelterDataStore
         // Lista boksów jest przechowywana w danych (shelter_db.json), zamiast generować ją "na żywo".
         if (Cages.Count == 0)
         {
-            var mieszkancy = Animals
-				.Where(z => z.Status != AnimalStatus.Adopted)
+			var mieszkancy = Animals
+				.Where(z => z.Status != AnimalStatus.Adopted && !z.IsArchived)
                 .ToList();
 
             for (int i = 1; i <= 10; i++)
@@ -247,6 +247,7 @@ public sealed class ShelterDataStore
         // Powiązanie OccupiedAnimalIds z obiektami zwierząt na potrzeby UI.
         // Lista OccupiedAnimals jest [JsonIgnore], więc po wczytaniu wymaga ponownego wypełnienia.
         var byId = Animals.ToDictionary(a => a.Id, a => a);
+		bool changed = false;
 
         foreach (var cage in Cages)
         {
@@ -254,13 +255,32 @@ public sealed class ShelterDataStore
 
             foreach (var animalId in cage.OccupiedAnimalIds.ToList())
             {
-                if (byId.TryGetValue(animalId, out var animal))
-                    cage.OccupiedAnimals.Add(animal);
+				if (!byId.TryGetValue(animalId, out var animal))
+				{
+					// Usuwamy "wiszące" Id (zwierzę usunięte z bazy).
+					cage.OccupiedAnimalIds.Remove(animalId);
+					changed = true;
+					continue;
+				}
+
+				// Zasady biznesowe: Adopted/Archived nie powinny zajmować boksów.
+				if (animal.Status == AnimalStatus.Adopted || animal.IsArchived)
+				{
+					cage.OccupiedAnimalIds.Remove(animalId);
+					changed = true;
+					continue;
+				}
+
+				cage.OccupiedAnimals.Add(animal);
             }
 
             // Zabezpieczenie: jeśli ktoś ustawi pojemność < 1 w JSON, normalizujemy.
             if (cage.Capacity < 1)
                 cage.Capacity = 1;
         }
+
+		// Jeśli podczas wiązania wykryliśmy nieprawidłowe przydziały, zapisujemy poprawki.
+		if (changed)
+			SaveChanges();
     }
 }

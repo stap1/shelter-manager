@@ -44,6 +44,13 @@
 			-->
 			<Picker x:Name="PickerStatus" />
 
+			<Label Text="Boks:" FontAttributes="Bold"/>
+			<!--
+				Wybór boksu, do którego jest przypisane zwierzę.
+				Lista jest budowana w code-behind na podstawie repozytorium boksów.
+			-->
+			<Picker x:Name="PickerCage" />
+
             <Button Text="Zapisz zmiany" 
                     Clicked="OnSaveClicked" 
                     BackgroundColor="#2196F3" 

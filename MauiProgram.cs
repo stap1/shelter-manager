@@ -4,6 +4,7 @@ using CommunityToolkit.Maui; // Wymaga zainstalowanego pakietu CommunityToolkit.
 using ShelterManager.Data;
 using ShelterManager.Data.Repositories;
 using ShelterManager.Infrastructure;
+using ShelterManager.Services;
 
 namespace ShelterManager;
 
@@ -35,6 +36,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<ICageRepository, CageFileRepository>();
         builder.Services.AddSingleton<IResourceRepository, ResourceFileRepository>();
         builder.Services.AddSingleton<ITaskRepository, TaskFileRepository>();
+
+        // Serwisy domenowe
+        builder.Services.AddSingleton<CageAllocationService>();
 
         var app = builder.Build();
         // Umożliwia pobieranie serwisów w stronach tworzonych przez DataTemplate.
