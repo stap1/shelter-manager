@@ -3,24 +3,29 @@
 Aplikacja mobilna/desktopowa stworzona w technologii **.NET MAUI** do kompleksowego zarządzania schroniskiem dla zwierząt. Projekt realizuje wymagania dotyczące bezpiecznego przechowywania danych, autoryzacji oraz interaktywnego interfejsu użytkownika.
 
 ## 🚀 Funkcje Systemu
-* **Ewidencja zwierząt**: Dodawanie, edycja i przeglądanie bazy podopiecznych.
+* **Ewidencja zwierząt**: Dodawanie, edycja i przeglądanie bazy podopiecznych (gatunek, status, zdjęcie).
+* **Archiwum zwierząt (soft delete)**: Archiwizacja i przywracanie; trwałe usunięcie tylko dla Administratora.
 * **System ról i uprawnień**: Rozdzielenie funkcji między Administratora a Pracownika.
 * **Dashboard**: Szybki podgląd statystyk (liczba zwierząt, kwarantanna).
-* **Magazyn**: Zarządzanie zapasami karmy i leków.
-* **Harmonogram**: Planowanie zadań i opieki nad zwierzętami.
-* **Mapy boksów**: Wizualizacja obłożenia klatek.
+* **Magazyn**: Zasoby z progami niskiego stanu, zużycie z powodem (transakcje) i uzupełnienia.
+* **Harmonogram opieki**: Zadania z datą, typem i opcjonalnym powiązaniem ze zwierzęciem (widoki Dzisiaj/Nadchodzące, filtry, alert o zaległych).
+* **Boksy/Klatki**: Trwała lista boksów, zarządzanie (dodaj/usuń/pojemność) i przydział zwierząt z walidacją miejsca.
+* **Adopcje**: Wnioski adopcyjne z workflow (New/InReview/Approved/Rejected) oraz automatyczne ustawienie zwierzęcia jako Adopted.
+* **Rejestr zdarzeń (audit trail)**: Automatyczne logowanie zdarzeń zwierzęcia i podgląd na ekranie zwierzęcia.
+* **Raporty**: Zwierzęta aktywne vs archiwum, obłożenie boksów, adopcje w okresie, zużycie zasobów w okresie, zadania na dziś i zaległe.
+* **Lokalna baza danych (JSON)**: Jeden plik `shelter_db.json` (migracja ze starego `shelter_data.json`).
 
 ## 🔐 Logowanie i Uprawnienia
 
 | Rola | Hasło | Uprawnienia |
 | :--- | :--- | :--- |
-| **Administrator** | `admin123` | Pełny dostęp, w tym usuwanie rekordów. |
-| **Pracownik** | Brak (logowanie bezpośrednie) | Przeglądanie, edycja, zadania. **Blokada usuwania.** |
+| **Administrator** | `admin123` | Pełny dostęp, w tym trwałe usuwanie (np. z Archiwum) i zarządzanie danymi. |
+| **Pracownik** | Brak (logowanie bezpośrednie) | Przeglądanie i edycja danych, archiwizacja/przywracanie zwierząt, zadania, boksy, magazyn, adopcje. **Bez trwałego usuwania.** |
 
 ## 🛠️ Jak uruchomić projekt?
 
 1.  **Wymagania**:
-    * Visual Studio 2022 z zainstalowanym obciążeniem ".NET MAUI".
+    * Visual Studio 2022/2026 z zainstalowanym obciążeniem ".NET MAUI".
     * Zainstalowany pakiet NuGet: `Newtonsoft.Json`, `CommunityToolkit.Mvvm`.
 
 2.  **Instalacja**:

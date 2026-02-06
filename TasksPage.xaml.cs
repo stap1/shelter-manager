@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Globalization;
+using Microsoft.Maui.Storage;
 using ShelterManager.Data.Repositories;
 using ShelterManager.Infrastructure;
 using ShelterManager.Models;
@@ -9,6 +11,8 @@ namespace ShelterManager;
 
 public partial class TasksPage : ContentPage
 {
+	private const string OverdueAlertDateKey = "Tasks.OverdueAlertDate";
+
     private readonly ITaskRepository _taskRepository;
     private readonly IAnimalRepository _animalRepository;
     private readonly AnimalEventService _eventService;
@@ -47,7 +51,32 @@ public partial class TasksPage : ContentPage
         _animalRepository.Reload();
         BuildFilterOptions();
         RefreshVisibleTasks();
+
+		// Proste powiadomienie o zaległych zadaniach (raz dziennie), żeby domknąć wymaganie z Projekt.txt.
+		_ = ShowOverdueTasksNotificationIfNeededAsync();
     }
+
+	private async Task ShowOverdueTasksNotificationIfNeededAsync()
+	{
+		var today = DateTime.Today;
+		int overdueCount = _taskRepository.Tasks.Count(t => t.Status == CareTaskStatus.Planned && t.ScheduledAt.Date < today);
+		if (overdueCount <= 0)
+			return;
+
+		// Nie spamujemy alertem przy każdej nawigacji.
+		string todayKey = today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+		string lastShownKey = Preferences.Get(OverdueAlertDateKey, string.Empty);
+		if (string.Equals(lastShownKey, todayKey, StringComparison.Ordinal))
+			return;
+
+		int todayCount = _taskRepository.Tasks.Count(t => t.Status == CareTaskStatus.Planned && t.ScheduledAt.Date == today);
+		string msg = $"Masz {overdueCount} zaległych zadań opieki.";
+		if (todayCount > 0)
+			msg += $"\nNa dziś: {todayCount}.";
+
+		await DisplayAlert("Zaległe zadania", msg, "OK");
+		Preferences.Set(OverdueAlertDateKey, todayKey);
+	}
 
     private void OnTasksCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {

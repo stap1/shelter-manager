@@ -141,8 +141,6 @@ public partial class MainPage : ContentPage
 			// Audit trail
 			_eventService.Log(zwierz.Id, AnimalEventType.Archived, $"Zarchiwizowano zwierzę: {zwierz.Imie}.");
 
-            _eventService.Log(zwierz.Id, AnimalEventType.Archived, "Zarchiwizowano zwierzę.");
-
             _animalRepository.SaveChanges();
             AktualizujWidok();
         }
