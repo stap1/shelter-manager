@@ -11,6 +11,7 @@ public partial class MainPage : ContentPage
 {
     private readonly IAnimalRepository _animalRepository;
     private readonly CageAllocationService _cageAllocationService;
+    private readonly AnimalEventService _eventService;
 
     // Główna kolekcja danych (źródło repozytorium)
     public ObservableCollection<Zwierze> Zwierzeta { get; }
@@ -25,6 +26,7 @@ public partial class MainPage : ContentPage
 
         _animalRepository = ServiceLocator.GetRequiredService<IAnimalRepository>();
         _cageAllocationService = ServiceLocator.GetRequiredService<CageAllocationService>();
+        _eventService = ServiceLocator.GetRequiredService<AnimalEventService>();
         Zwierzeta = _animalRepository.Animals;
         AktualizujWidok();
 
@@ -37,6 +39,7 @@ public partial class MainPage : ContentPage
             {
                 Zwierzeta.Add(m);
                 _animalRepository.SaveChanges();
+                _eventService.Log(m.Id, AnimalEventType.Created, $"Utworzono zwierzę: {m.Imie}.");
                 AktualizujWidok();
             });
         });
@@ -134,6 +137,11 @@ public partial class MainPage : ContentPage
 
 			zwierz.IsArchived = true;
 			zwierz.ArchivedAt = DateTime.UtcNow;
+
+			// Audit trail
+			_eventService.Log(zwierz.Id, AnimalEventType.Archived, $"Zarchiwizowano zwierzę: {zwierz.Imie}.");
+
+            _eventService.Log(zwierz.Id, AnimalEventType.Archived, "Zarchiwizowano zwierzę.");
 
             _animalRepository.SaveChanges();
             AktualizujWidok();

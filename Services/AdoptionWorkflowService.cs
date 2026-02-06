@@ -15,17 +15,20 @@ public sealed class AdoptionWorkflowService
     private readonly IAnimalRepository _animalRepository;
     private readonly ITaskRepository _taskRepository;
     private readonly CageAllocationService _cageAllocationService;
+    private readonly AnimalEventService _eventService;
 
     public AdoptionWorkflowService(
         IAdoptionApplicationRepository applicationRepository,
         IAnimalRepository animalRepository,
         ITaskRepository taskRepository,
-        CageAllocationService cageAllocationService)
+        CageAllocationService cageAllocationService,
+        AnimalEventService eventService)
     {
         _applicationRepository = applicationRepository;
         _animalRepository = animalRepository;
         _taskRepository = taskRepository;
         _cageAllocationService = cageAllocationService;
+        _eventService = eventService;
     }
 
     public OperationResult SetStatus(AdoptionApplication application, AdoptionApplicationStatus newStatus)
@@ -67,6 +70,7 @@ public sealed class AdoptionWorkflowService
         application.Status = AdoptionApplicationStatus.Approved;
 
         // 2b) Aktualizacja zwierzęcia
+        var oldStatus = animal.Status;
         animal.Status = AnimalStatus.Adopted;
 
         // 2c) Zdjęcie z boksu (spójność danych)
@@ -87,6 +91,14 @@ public sealed class AdoptionWorkflowService
         // 2e) Wpis do historii (wykorzystujemy istniejące pole HistoriaMedyczna)
         AppendHistoryEntry(animal, $"Adopcja zatwierdzona. Wnioskodawca: {application.ApplicantName}. Kontakt: {application.Contact}.");
 
+        // 2f) Audit trail
+        if (oldStatus != animal.Status)
+        {
+            _eventService.Log(animal.Id, AnimalEventType.StatusChanged, $"Status: {ToStatusLabel(oldStatus)} -> {ToStatusLabel(animal.Status)}.");
+        }
+        _eventService.Log(animal.Id, AnimalEventType.AdoptionApproved,
+            $"Zatwierdzono adopcję. Wnioskodawca: {application.ApplicantName}. Kontakt: {application.Contact}.");
+
         // 3) Persystencja
         // Uwaga: repozytoria finalnie zapisują jeden plik, ale zachowujemy czytelność.
         _animalRepository.SaveChanges();
@@ -96,6 +108,15 @@ public sealed class AdoptionWorkflowService
 
         return OperationResult.Ok();
     }
+
+    private static string ToStatusLabel(AnimalStatus status) => status switch
+    {
+        AnimalStatus.Quarantine => "Kwarantanna",
+        AnimalStatus.Treatment => "W leczeniu",
+        AnimalStatus.ForAdoption => "Do adopcji",
+        AnimalStatus.Adopted => "Adoptowany",
+        _ => status.ToString()
+    };
 
     private static void AppendHistoryEntry(Zwierze animal, string entry)
     {

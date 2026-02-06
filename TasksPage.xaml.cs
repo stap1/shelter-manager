@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using ShelterManager.Data.Repositories;
 using ShelterManager.Infrastructure;
 using ShelterManager.Models;
+using ShelterManager.Services;
 
 namespace ShelterManager;
 
@@ -10,6 +11,7 @@ public partial class TasksPage : ContentPage
 {
     private readonly ITaskRepository _taskRepository;
     private readonly IAnimalRepository _animalRepository;
+    private readonly AnimalEventService _eventService;
 
     private TaskViewMode _viewMode = TaskViewMode.Today;
 
@@ -26,6 +28,7 @@ public partial class TasksPage : ContentPage
 
         _taskRepository = ServiceLocator.GetRequiredService<ITaskRepository>();
         _animalRepository = ServiceLocator.GetRequiredService<IAnimalRepository>();
+        _eventService = ServiceLocator.GetRequiredService<AnimalEventService>();
 
         // Reagujemy na zmiany kolekcji (np. po dodaniu z innej strony)
         _taskRepository.Tasks.CollectionChanged += OnTasksCollectionChanged;
@@ -193,8 +196,21 @@ public partial class TasksPage : ContentPage
         // Używamy przycisku jako stabilnego przełącznika.
         if (sender is Button btn && btn.CommandParameter is Zadanie zad)
         {
+            var wasDone = zad.IsDone;
             zad.IsDone = !zad.IsDone;
             _taskRepository.SaveChanges();
+
+            // Audit trail: wykonanie zadania opieki dla konkretnego zwierzęcia.
+            // Rejestrujemy tylko przejście false -> true.
+            if (!wasDone && zad.IsDone && zad.AnimalId is Guid animalId)
+            {
+                var desc = $"Wykonano zadanie: {zad.TypeOpis}. Termin: {zad.ScheduledAtOpis}.";
+                if (!string.IsNullOrWhiteSpace(zad.Notes))
+                    desc += $" Notatka: {zad.Notes}.";
+
+                _eventService.Log(animalId, AnimalEventType.CareTaskDone, desc);
+            }
+
             RefreshVisibleTasks();
         }
     }

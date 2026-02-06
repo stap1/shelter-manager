@@ -19,11 +19,13 @@ public sealed class CageAllocationService
 {
     private readonly IAnimalRepository _animalRepository;
     private readonly ICageRepository _cageRepository;
+    private readonly AnimalEventService _eventService;
 
-    public CageAllocationService(IAnimalRepository animalRepository, ICageRepository cageRepository)
+    public CageAllocationService(IAnimalRepository animalRepository, ICageRepository cageRepository, AnimalEventService eventService)
     {
         _animalRepository = animalRepository;
         _cageRepository = cageRepository;
+        _eventService = eventService;
     }
 
     /// <summary>
@@ -38,6 +40,9 @@ public sealed class CageAllocationService
 
         if (!IsEligibleForAllocation(animal))
             return AllocationResult.Fail("Nie można przydzielić zwierzęcia o statusie Adopted lub zarchiwizowanego.");
+
+        // Zapamiętujemy poprzedni boks na potrzeby audytu.
+        var previousCage = FindCageOfAnimal(animalId);
 
         var targetCage = FindCage(cageId);
         if (targetCage is null)
@@ -58,6 +63,17 @@ public sealed class CageAllocationService
         AddToCageInternal(targetCage, animal);
 
         _cageRepository.SaveChanges();
+
+        // Audit trail: przydział / przeniesienie.
+        if (previousCage is null)
+        {
+            _eventService.Log(animalId, AnimalEventType.CageAssigned, $"Przydzielono do boksu {targetCage.Numer}.");
+        }
+        else if (previousCage.Id != targetCage.Id)
+        {
+            _eventService.Log(animalId, AnimalEventType.CageMoved, $"Przeniesiono z boksu {previousCage.Numer} do boksu {targetCage.Numer}.");
+        }
+
         return AllocationResult.Ok();
     }
 
@@ -79,9 +95,15 @@ public sealed class CageAllocationService
         if (animal is null)
             return AllocationResult.Fail("Nie znaleziono zwierzęcia.");
 
+        var previousCage = FindCageOfAnimal(animalId);
         bool changed = RemoveAnimalFromAllCagesInternal(animalId);
         if (changed)
+        {
             _cageRepository.SaveChanges();
+
+            if (previousCage is not null)
+                _eventService.Log(animalId, AnimalEventType.CageRemoved, $"Zdjęto z boksu {previousCage.Numer}.");
+        }
 
         return AllocationResult.Ok();
     }

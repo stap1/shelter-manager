@@ -10,6 +10,7 @@ public partial class ArchivePage : ContentPage
 {
     private readonly IAnimalRepository _animalRepository;
     private readonly CageAllocationService _cageAllocationService;
+    private readonly AnimalEventService _eventService;
 
     // Kolekcja z repozytorium (zawiera także aktywne i zarchiwizowane rekordy).
     public ObservableCollection<Zwierze> Zwierzeta { get; }
@@ -27,6 +28,7 @@ public partial class ArchivePage : ContentPage
 
         _animalRepository = ServiceLocator.GetRequiredService<IAnimalRepository>();
         _cageAllocationService = ServiceLocator.GetRequiredService<CageAllocationService>();
+        _eventService = ServiceLocator.GetRequiredService<AnimalEventService>();
 
         Zwierzeta = _animalRepository.Animals;
         OdswiezWidok();
@@ -99,6 +101,9 @@ public partial class ArchivePage : ContentPage
         zwierz.IsArchived = false;
         zwierz.ArchivedAt = null;
 
+        // Audit trail
+        _eventService.Log(zwierz.Id, AnimalEventType.Restored, $"Przywrócono z archiwum: {zwierz.Imie}.");
+
         _animalRepository.SaveChanges();
         OdswiezWidok();
     }
@@ -125,6 +130,9 @@ public partial class ArchivePage : ContentPage
 
         // Zabezpieczenie spójności: usuwamy zwierzę z boksów, jeśli gdzieś "wisi".
         _cageAllocationService.RemoveAnimalFromCage(zwierz.Id);
+
+        // Sprzątamy audit trail, żeby nie zostawiać osieroconych wpisów.
+        _eventService.RemoveAllForAnimal(zwierz.Id);
 
         Zwierzeta.Remove(zwierz);
         _animalRepository.SaveChanges();

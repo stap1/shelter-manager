@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using ShelterManager.Data.Repositories;
 using ShelterManager.Infrastructure;
 using ShelterManager.Services;
+using System.Collections.ObjectModel;
 
 namespace ShelterManager;
 
@@ -15,6 +16,14 @@ public partial class EditAnimalPage : ContentPage
 	private readonly IAnimalRepository _animalRepository;
 	private readonly ICageRepository _cageRepository;
 	private readonly CageAllocationService _cageAllocationService;
+	private readonly IAnimalEventRepository _eventRepository;
+	private readonly AnimalEventService _eventService;
+
+	private readonly string _originalImie;
+	private readonly string _originalRasa;
+	private readonly AnimalStatus _originalStatus;
+
+	public ObservableCollection<AnimalEvent> Zdarzenia { get; } = new();
 
     // Konstruktor przyjmuje zwierzaka, którego kliknąłeś
     public EditAnimalPage(Zwierze zwierzeDoEdycji)
@@ -25,6 +34,12 @@ public partial class EditAnimalPage : ContentPage
 		_animalRepository = ServiceLocator.GetRequiredService<IAnimalRepository>();
 		_cageRepository = ServiceLocator.GetRequiredService<ICageRepository>();
 		_cageAllocationService = ServiceLocator.GetRequiredService<CageAllocationService>();
+		_eventRepository = ServiceLocator.GetRequiredService<IAnimalEventRepository>();
+		_eventService = ServiceLocator.GetRequiredService<AnimalEventService>();
+
+		_originalImie = _zwierze.Imie;
+		_originalRasa = _zwierze.Rasa;
+		_originalStatus = _zwierze.Status;
 
 		// Ustawiamy tego zwierzaka jako źródło danych dla pól (Entry)
 		BindingContext = _zwierze;
@@ -51,7 +66,30 @@ public partial class EditAnimalPage : ContentPage
 		var currentCage = _cageAllocationService.FindCageOfAnimal(_zwierze.Id);
 		PickerCage.SelectedItem = _boksy.FirstOrDefault(b => b.CageId == currentCage?.Id)
 		                          ?? _boksy.First();
+
+		LoadEvents();
     }
+
+	protected override void OnAppearing()
+	{
+		base.OnAppearing();
+		_eventRepository.Reload();
+		LoadEvents();
+	}
+
+	private void LoadEvents()
+	{
+		// Pokazujemy najnowsze na górze.
+		var list = _eventRepository.AnimalEvents
+			.Where(e => e.AnimalId == _zwierze.Id)
+			.OrderByDescending(e => e.Timestamp)
+			.ToList();
+
+		Zdarzenia.Clear();
+		foreach (var e in list)
+			Zdarzenia.Add(e);
+		OnPropertyChanged(nameof(Zdarzenia));
+	}
 
     private async void OnSaveClicked(object sender, EventArgs e)
     {
@@ -95,6 +133,22 @@ public partial class EditAnimalPage : ContentPage
 		_animalRepository.SaveChanges();
 		_cageRepository.SaveChanges();
 
+		// -----------------
+		// Audit trail: edycja + zmiana statusu.
+		// (zmiany boksu loguje CageAllocationService)
+		// -----------------
+		if (_originalStatus != _zwierze.Status)
+		{
+			_eventService.Log(_zwierze.Id, AnimalEventType.StatusChanged,
+				$"Status: {ToStatusLabel(_originalStatus)} -> {ToStatusLabel(_zwierze.Status)}.");
+		}
+
+		if (!string.Equals(_originalImie, _zwierze.Imie, StringComparison.Ordinal)
+			|| !string.Equals(_originalRasa, _zwierze.Rasa, StringComparison.Ordinal))
+		{
+			_eventService.Log(_zwierze.Id, AnimalEventType.Edited, "Zaktualizowano dane zwierzęcia.");
+		}
+
 		// Odśwież liczniki na MainPage.
 		WeakReferenceMessenger.Default.Send("ZapiszMnie");
 
@@ -127,4 +181,13 @@ public partial class EditAnimalPage : ContentPage
 
 		return list;
 	}
+
+	private static string ToStatusLabel(AnimalStatus status) => status switch
+	{
+		AnimalStatus.Quarantine => "Kwarantanna",
+		AnimalStatus.Treatment => "W leczeniu",
+		AnimalStatus.ForAdoption => "Do adopcji",
+		AnimalStatus.Adopted => "Adoptowany",
+		_ => status.ToString()
+	};
 }

@@ -38,11 +38,12 @@ public static class MauiProgram
         builder.Services.AddSingleton<IInventoryTransactionRepository, InventoryTransactionFileRepository>();
         builder.Services.AddSingleton<ITaskRepository, TaskFileRepository>();
         builder.Services.AddSingleton<IAdoptionApplicationRepository, AdoptionApplicationFileRepository>();
+        builder.Services.AddSingleton<IAnimalEventRepository, AnimalEventFileRepository>();
 
         // Serwisy domenowe
         builder.Services.AddSingleton<CageAllocationService>();
         builder.Services.AddSingleton<AdoptionWorkflowService>();
-        builder.Services.AddSingleton<AdoptionWorkflowService>();
+        builder.Services.AddSingleton<AnimalEventService>();
 
         var app = builder.Build();
         // Umożliwia pobieranie serwisów w stronach tworzonych przez DataTemplate.

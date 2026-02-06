@@ -22,6 +22,7 @@ public sealed class ShelterDataStore
     public ObservableCollection<Zasob> Resources { get; } = new();
     public ObservableCollection<InventoryTransaction> InventoryTransactions { get; } = new();
     public ObservableCollection<Zadanie> Tasks { get; } = new();
+    public ObservableCollection<AnimalEvent> AnimalEvents { get; } = new();
     public ObservableCollection<AdoptionApplication> AdoptionApplications { get; } = new();
 
     public ShelterDataStore()
@@ -73,8 +74,9 @@ public sealed class ShelterDataStore
                 Resources = new ObservableCollection<Zasob>(Resources),
                 InventoryTransactions = new ObservableCollection<InventoryTransaction>(InventoryTransactions),
                 Tasks = new ObservableCollection<Zadanie>(Tasks),
+                AnimalEvents = new ObservableCollection<AnimalEvent>(AnimalEvents),
                 AdoptionApplications = new ObservableCollection<AdoptionApplication>(AdoptionApplications),
-                SchemaVersion = 5
+                SchemaVersion = 6
             };
 
             try
@@ -110,6 +112,7 @@ public sealed class ShelterDataStore
             Resources.Clear();
             InventoryTransactions.Clear();
             Tasks.Clear();
+            AnimalEvents.Clear();
             AdoptionApplications.Clear();
             return;
         }
@@ -124,6 +127,7 @@ public sealed class ShelterDataStore
             Resources.Clear();
             InventoryTransactions.Clear();
             Tasks.Clear();
+            AnimalEvents.Clear();
             AdoptionApplications.Clear();
 
             if (dto is null) return;
@@ -133,6 +137,7 @@ public sealed class ShelterDataStore
             foreach (var r in dto.Resources ?? new()) Resources.Add(r);
             foreach (var tx in dto.InventoryTransactions ?? new()) InventoryTransactions.Add(tx);
             foreach (var t in dto.Tasks ?? new()) Tasks.Add(t);
+            foreach (var ev in dto.AnimalEvents ?? new()) AnimalEvents.Add(ev);
             foreach (var a in dto.AdoptionApplications ?? new()) AdoptionApplications.Add(a);
         }
         catch (Exception ex)
@@ -160,8 +165,9 @@ public sealed class ShelterDataStore
                 Resources = new ObservableCollection<Zasob>(),
                 InventoryTransactions = new ObservableCollection<InventoryTransaction>(),
                 Tasks = new ObservableCollection<Zadanie>(),
+                AnimalEvents = new ObservableCollection<AnimalEvent>(),
                 AdoptionApplications = new ObservableCollection<AdoptionApplication>(),
-                SchemaVersion = 5
+                SchemaVersion = 6
             };
 
             var newJson = JsonConvert.SerializeObject(dto, Formatting.Indented);

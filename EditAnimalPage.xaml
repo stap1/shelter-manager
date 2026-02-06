@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:ShelterManager.Models"
              x:Class="ShelterManager.EditAnimalPage"
+             x:Name="EditAnimalPageRoot"
              Title="Edycja Zwierzaka">
 
     <ScrollView>
@@ -50,6 +52,37 @@
 				Lista jest budowana w code-behind na podstawie repozytorium boksów.
 			-->
 			<Picker x:Name="PickerCage" />
+
+			<!-- Rejestr zdarzeń (audit trail) -->
+			<Label Text="Rejestr zdarzeń" FontSize="18" FontAttributes="Bold" Margin="0,20,0,0"/>
+
+			<!--
+				Uwaga: dla stabilności na Windows (WinUI) unikamy skomplikowanych wirtualizowanych list.
+				Używamy BindableLayout, bo lista zdarzeń jest zazwyczaj krótka.
+			-->
+			<VerticalStackLayout Spacing="10"
+						 BindableLayout.ItemsSource="{Binding Source={x:Reference EditAnimalPageRoot}, Path=Zdarzenia}">
+
+				<VerticalStackLayout.BindableLayout.EmptyView>
+					<Label Text="Brak zdarzeń dla tego zwierzęcia." TextColor="#90A4AE"/>
+				</VerticalStackLayout.BindableLayout.EmptyView>
+
+				<VerticalStackLayout.BindableLayout.ItemTemplate>
+					<DataTemplate x:DataType="models:AnimalEvent">
+						<Border StrokeShape="RoundRectangle 12" StrokeThickness="1" Stroke="#E0E0E0" Padding="12" BackgroundColor="#FFFFFF">
+							<VerticalStackLayout Spacing="4">
+								<HorizontalStackLayout Spacing="10">
+									<Label Text="{Binding TimestampOpis}" FontSize="12" TextColor="#607D8B"/>
+									<Label Text="•" FontSize="12" TextColor="#B0BEC5"/>
+									<Label Text="{Binding TypeOpis}" FontSize="12" TextColor="#1A237E" FontAttributes="Bold"/>
+								</HorizontalStackLayout>
+
+								<Label Text="{Binding Description}" FontSize="13" TextColor="#263238"/>
+							</VerticalStackLayout>
+						</Border>
+					</DataTemplate>
+				</VerticalStackLayout.BindableLayout.ItemTemplate>
+			</VerticalStackLayout>
 
             <Button Text="Zapisz zmiany" 
                     Clicked="OnSaveClicked" 
