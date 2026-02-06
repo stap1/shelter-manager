@@ -29,6 +29,6 @@ public class StatusToColorConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         // Tutaj nic nie robimy, więc zwracamy null
-        return null; 
+        return null;
     }
 }

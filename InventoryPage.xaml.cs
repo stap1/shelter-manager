@@ -1,5 +1,5 @@
-using System.Collections.ObjectModel;
 using ShelterManager.Models; // Upewnij się, że to pasuje do Twojej przestrzeni nazw
+using System.Collections.ObjectModel;
 
 namespace ShelterManager;
 
@@ -20,9 +20,9 @@ public partial class InventoryPage : ContentPage
     {
         InitializeComponent();
         GenerujDane();
-        
+
         // Teraz to zadziała, bo w XAML dodaliśmy x:Name="ListaZasobow"
-        BindingContext = this; 
+        BindingContext = this;
         // Alternatywnie: ListaZasobow.ItemsSource = Zasoby; (ale BindingContext jest elegantszy przy {Binding Zasoby} w XAML)
     }
 
