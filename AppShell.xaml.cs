@@ -1,4 +1,6 @@
-﻿namespace ShelterManager;
+﻿using System.Diagnostics;
+
+namespace ShelterManager;
 
 public partial class AppShell : Shell
 {

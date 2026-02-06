@@ -50,9 +50,9 @@ public class Zasob : BaseModel
     /// </summary>
     public bool IsLowStock => Ilosc > 0 && Ilosc < LowStockThreshold;
 
-    public string Status
-    {
-        get
+    public string Status 
+    { 
+        get 
         {
             if (Ilosc <= 0) return "BRAK!";
             if (Ilosc < LowStockThreshold) return "MAŁO";

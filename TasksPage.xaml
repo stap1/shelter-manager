@@ -6,128 +6,201 @@
              Title="Zadania"
              BackgroundColor="#F4F7FA">
 
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="#2196F3" Offset="0.0" />
-                <GradientStop Color="#21CBF3" Offset="1.0" />
-            </LinearGradientBrush>
-        </ResourceDictionary>
-    </ContentPage.Resources>
+    <Grid MaximumWidthRequest="900" HorizontalOptions="Center" RowDefinitions="Auto, Auto, *">
 
-    <Grid MaximumWidthRequest="800" HorizontalOptions="Center" RowDefinitions="Auto, Auto, *">
-
-        <VerticalStackLayout Grid.Row="0" Margin="0,30,0,25" Spacing="8">
-            <Label Text="HARMONOGRAM" 
-                   FontSize="32" 
-                   FontAttributes="Bold" 
-                   TextColor="#1A237E" 
-                   HorizontalOptions="Center" 
+        <!-- Nagłówek -->
+        <VerticalStackLayout Grid.Row="0" Margin="0,30,0,20" Spacing="6">
+            <Label Text="HARMONOGRAM OPIEKI"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="#1A237E"
+                   HorizontalOptions="Center"
                    CharacterSpacing="1"/>
 
-            <Label Text="Lista zadań na dziś" 
-                   FontSize="16" 
-                   TextColor="#7986CB" 
+            <Label Text="Dzisiaj i nadchodzące zadania"
+                   FontSize="14"
+                   TextColor="#7986CB"
                    HorizontalOptions="Center"/>
         </VerticalStackLayout>
 
-        <Border Grid.Row="1" 
-                Margin="20,0,20,30" 
-                StrokeShape="RoundRectangle 30" 
-                BackgroundColor="White" 
-                StrokeThickness="0" 
-                HeightRequest="60">
+        <!-- Sterowanie: widok + filtry + dodawanie -->
+        <Border Grid.Row="1"
+                Margin="20,0,20,20"
+                StrokeShape="RoundRectangle 20"
+                BackgroundColor="White"
+                StrokeThickness="0"
+                Padding="14">
 
             <Border.Shadow>
-                <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.2" Radius="10"/>
+                <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.15" Radius="10"/>
             </Border.Shadow>
 
-            <Grid ColumnDefinitions="*, Auto" Padding="5">
-                <Entry x:Name="EntryNoweZadanie" 
-                       Placeholder="Wpisz nowe zadanie..." 
-                       Margin="20,0" 
-                       VerticalOptions="Center"
-                       FontSize="16"
-                       TextColor="#37474F"
-                       PlaceholderColor="#B0BEC5"/>
+            <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="*, *, *, Auto" RowSpacing="10" ColumnSpacing="10">
 
-                <Button Grid.Column="1" 
-                        Text="DODAJ" 
-                        Clicked="OnAddClicked" 
-                        Background="{StaticResource PrimaryGradient}" 
-                        TextColor="White" 
-                        CornerRadius="25" 
-                        HeightRequest="50" 
-                        WidthRequest="100"
+                <Button x:Name="BtnToday"
+                        Grid.Row="0" Grid.Column="0"
+                        Text="DZIŚ"
+                        Clicked="OnTodayClicked"
+                        CornerRadius="16"
                         FontAttributes="Bold"
-                        Shadow="{Shadow Brush=#2196F3, Offset='0,4', Opacity=0.3, Radius=8}"/>
+                        BackgroundColor="#2196F3"
+                        TextColor="White"/>
+
+                <Button x:Name="BtnUpcoming"
+                        Grid.Row="0" Grid.Column="1"
+                        Text="NADCHODZĄCE"
+                        Clicked="OnUpcomingClicked"
+                        CornerRadius="16"
+                        FontAttributes="Bold"
+                        BackgroundColor="#E3F2FD"
+                        TextColor="#1A237E"/>
+
+                <Label Grid.Row="0" Grid.Column="2"
+                       Text="Filtry:"
+                       VerticalTextAlignment="Center"
+                       TextColor="#607D8B"
+                       FontAttributes="Bold"/>
+
+                <Button Grid.Row="0" Grid.Column="3"
+                        Text="+ DODAJ"
+                        Clicked="OnAddTaskClicked"
+                        CornerRadius="16"
+                        FontAttributes="Bold"
+                        BackgroundColor="#4CAF50"
+                        TextColor="White"/>
+
+                <Picker x:Name="PickerStatus"
+                        Grid.Row="1" Grid.Column="0"
+                        Title="Status"
+                        SelectedIndexChanged="OnFilterChanged"/>
+
+                <Picker x:Name="PickerType"
+                        Grid.Row="1" Grid.Column="1"
+                        Title="Typ"
+                        SelectedIndexChanged="OnFilterChanged"/>
+
+                <Picker x:Name="PickerAnimal"
+                        Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2"
+                        Title="Zwierzę"
+                        SelectedIndexChanged="OnFilterChanged"/>
             </Grid>
         </Border>
 
-        <CollectionView Grid.Row="2" 
-                        ItemsSource="{Binding Zadania}" 
-                        Margin="20,0">
+        <!-- Lista -->
+        <!--
+            Uwaga: na Windows (WinUI) CollectionView potrafi w określonych układach powodować
+            System.AccessViolationException podczas nawigacji do strony.
+            Aby ustabilizować aplikację, wyświetlamy zadania przez BindableLayout (bez wirtualizacji).
+        -->
+        <ScrollView Grid.Row="2" Margin="20,0">
+            <VerticalStackLayout Spacing="12"
+                                 BindableLayout.ItemsSource="{Binding WidoczneZadania}">
 
-            <CollectionView.ItemsLayout>
-                <LinearItemsLayout Orientation="Vertical" ItemSpacing="12"/>
-            </CollectionView.ItemsLayout>
+                <VerticalStackLayout.BindableLayout.EmptyView>
+                    <Label Text="Brak zadań dla wybranych kryteriów."
+                           TextColor="#90A4AE"
+                           HorizontalOptions="Center"
+                           Margin="0,20,0,0"/>
+                </VerticalStackLayout.BindableLayout.EmptyView>
 
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:Zadanie">
-                    <Border StrokeShape="RoundRectangle 20" 
-                            BackgroundColor="White" 
-                            StrokeThickness="0" 
-                            Padding="0">
+                <VerticalStackLayout.BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="models:Zadanie">
+                        <Border StrokeShape="RoundRectangle 18"
+                                BackgroundColor="White"
+                                StrokeThickness="0"
+                                Padding="0">
 
-                        <Border.Shadow>
-                            <Shadow Brush="#CFD8DC" Offset="0,2" Opacity="0.1" Radius="5"/>
-                        </Border.Shadow>
+                            <Grid ColumnDefinitions="54, *, Auto, Auto" Padding="0,14">
 
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnTaskTapped"/>
-                        </Border.GestureRecognizers>
-
-                        <Grid ColumnDefinitions="50, *, Auto" Padding="0,15">
-
-                            <CheckBox Grid.Column="0" 
-                                      IsChecked="{Binding CzyZrobione, Mode=TwoWay}" 
-                                      Color="#2196F3" 
-                                      HorizontalOptions="Center"
-                                      VerticalOptions="Center"
-                                      InputTransparent="True"/>
-
-                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                                <Label Text="{Binding Tresc}" 
-                                       FontSize="16" 
-                                       TextColor="#37474F"
-                                       FontAttributes="Bold">
-                                    <Label.Triggers>
-                                        <DataTrigger TargetType="Label" Binding="{Binding CzyZrobione}" Value="True">
-                                            <Setter Property="TextDecorations" Value="Strikethrough"/>
-                                            <Setter Property="TextColor" Value="#B0BEC5"/>
+                                <!-- Zamiast CheckBox: przycisk przełączający stan (stabilniejsze na WinUI) -->
+                                <Button Grid.Column="0"
+                                        Clicked="OnToggleDoneClicked"
+                                        CommandParameter="{Binding .}"
+                                        FontSize="20"
+                                        WidthRequest="44"
+                                        HeightRequest="44"
+                                        CornerRadius="22"
+                                        BackgroundColor="#E3F2FD"
+                                        TextColor="#1A237E"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding IsDone}" Value="True">
+                                            <Setter Property="Text" Value="✓"/>
+                                            <Setter Property="BackgroundColor" Value="#E3F2FD"/>
+                                            <Setter Property="TextColor" Value="#2196F3"/>
                                         </DataTrigger>
-                                    </Label.Triggers>
-                                </Label>
+                                        <DataTrigger TargetType="Button" Binding="{Binding IsDone}" Value="False">
+                                            <Setter Property="Text" Value="○"/>
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
 
-                                <Label Text="{Binding Godzina}" 
-                                       FontSize="12" 
-                                       TextColor="#90A4AE"/>
-                            </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                                    <Label Text="{Binding TypeOpis}"
+                                           FontSize="16"
+                                           TextColor="#263238"
+                                           FontAttributes="Bold">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsCancelled}" Value="True">
+                                                <Setter Property="TextDecorations" Value="Strikethrough"/>
+                                                <Setter Property="TextColor" Value="#B0BEC5"/>
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
 
-                            <Button Grid.Column="2" 
-                                    Text="✕" 
-                                    Clicked="OnDeleteTaskClicked" 
-                                    CommandParameter="{Binding .}"
-                                    BackgroundColor="Transparent" 
-                                    TextColor="#EF5350" 
-                                    FontSize="20"
-                                    WidthRequest="50"
-                                    HeightRequest="50"
-                                    VerticalOptions="Center"/>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+                                    <Label Text="{Binding Notes}"
+                                           FontSize="13"
+                                           TextColor="#607D8B">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsCancelled}" Value="True">
+                                                <Setter Property="TextColor" Value="#B0BEC5"/>
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+
+                                    <HorizontalStackLayout Spacing="10">
+                                        <Label Text="{Binding ScheduledAtOpis}"
+                                               FontSize="12"
+                                               TextColor="#90A4AE"/>
+                                        <Label Text="•" FontSize="12" TextColor="#CFD8DC"/>
+                                        <Label Text="{Binding AnimalOpis}"
+                                               FontSize="12"
+                                               TextColor="#90A4AE"/>
+                                        <Label Text="•" FontSize="12" TextColor="#CFD8DC"/>
+                                        <Label Text="{Binding StatusOpis}"
+                                               FontSize="12"
+                                               TextColor="#90A4AE"/>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+
+                                <Button Grid.Column="2"
+                                        Text="ANULUJ"
+                                        Clicked="OnCancelTaskClicked"
+                                        CommandParameter="{Binding .}"
+                                        CornerRadius="16"
+                                        HeightRequest="40"
+                                        Padding="14,0"
+                                        BackgroundColor="#FFF3E0"
+                                        TextColor="#E65100"
+                                        FontAttributes="Bold"
+                                        VerticalOptions="Center"/>
+
+                                <Button Grid.Column="3"
+                                        Text="✕"
+                                        Clicked="OnDeleteTaskClicked"
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="#EF5350"
+                                        FontSize="20"
+                                        WidthRequest="50"
+                                        HeightRequest="50"
+                                        VerticalOptions="Center"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </VerticalStackLayout.BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </ScrollView>
     </Grid>
 </ContentPage>

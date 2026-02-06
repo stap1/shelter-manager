@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ShelterManager.AddCareTaskPage"
+             Title="Dodaj zadanie"
+             BackgroundColor="#F4F7FA">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14" MaximumWidthRequest="800" HorizontalOptions="Center">
+
+            <Label Text="NOWE ZADANIE OPIEKI"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="#1A237E"
+                   HorizontalOptions="Center"/>
+
+            <Border StrokeShape="RoundRectangle 18" BackgroundColor="White" StrokeThickness="0" Padding="16">
+                <Border.Shadow>
+                    <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.12" Radius="10"/>
+                </Border.Shadow>
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="Termin" FontAttributes="Bold" TextColor="#37474F"/>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <DatePicker x:Name="DatePickerDate" />
+                        <TimePicker x:Name="TimePickerTime" Grid.Column="1" />
+                    </Grid>
+
+                    <Label Text="Typ" FontAttributes="Bold" TextColor="#37474F"/>
+                    <Picker x:Name="PickerType" Title="Wybierz typ" />
+
+                    <Label Text="Zwierzę" FontAttributes="Bold" TextColor="#37474F"/>
+                    <Picker x:Name="PickerAnimal" Title="Powiązanie opcjonalne" />
+
+                    <Label Text="Opis" FontAttributes="Bold" TextColor="#37474F"/>
+                    <Editor x:Name="EditorNotes" AutoSize="TextChanges" Placeholder="Np. dawkowanie, szczegóły, sektor..." />
+
+                </VerticalStackLayout>
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <Button Text="ANULUJ" Clicked="OnCancelClicked" CornerRadius="16" BackgroundColor="#ECEFF1" TextColor="#37474F" FontAttributes="Bold"/>
+                <Button Text="ZAPISZ" Grid.Column="1" Clicked="OnSaveClicked" CornerRadius="16" BackgroundColor="#4CAF50" TextColor="White" FontAttributes="Bold"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -8,7 +8,7 @@ public class Zwierze : BaseModel
     private string _rasa = string.Empty;
     private AnimalStatus _status = AnimalStatus.Unknown;
     private string _zdjecie = string.Empty;
-
+    
     // --- NOWE POLA ---
     private string _wiek = string.Empty;
     private string _historiaMedyczna = string.Empty;
@@ -21,7 +21,7 @@ public class Zwierze : BaseModel
     private DateTime? _archivedAt;
 
     // Właściwości publiczne z powiadomieniami (OnPropertyChanged)
-
+    
     public string Imie
     {
         get => _imie;
@@ -30,7 +30,7 @@ public class Zwierze : BaseModel
             if (_imie != value)
             {
                 _imie = value;
-                OnPropertyChanged();
+                OnPropertyChanged(); 
             }
         }
     }

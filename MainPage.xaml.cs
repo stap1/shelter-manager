@@ -1,9 +1,9 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+﻿using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.Messaging;
 using ShelterManager.Data.Repositories;
 using ShelterManager.Infrastructure;
 using ShelterManager.Models;
 using ShelterManager.Services;
-using System.Collections.ObjectModel;
 
 namespace ShelterManager;
 
@@ -49,7 +49,7 @@ public partial class MainPage : ContentPage
                 // Dispatcher zapewnia bezpieczne odświeżenie UI bez "Task.Delay"
                 Dispatcher.Dispatch(() =>
                 {
-                    _animalRepository.SaveChanges();
+					_animalRepository.SaveChanges();
                     AktualizujWidok();
                 });
             }
@@ -61,8 +61,8 @@ public partial class MainPage : ContentPage
     {
         string fraza = e.NewTextValue?.ToLower() ?? "";
 
-        // Na ekranie głównym pokazujemy tylko aktywne zwierzęta (niezarchiwizowane).
-        var aktywne = Zwierzeta.Where(z => !z.IsArchived).ToList();
+		// Na ekranie głównym pokazujemy tylko aktywne zwierzęta (niezarchiwizowane).
+		var aktywne = Zwierzeta.Where(z => !z.IsArchived).ToList();
 
         if (string.IsNullOrWhiteSpace(fraza))
         {
@@ -79,14 +79,14 @@ public partial class MainPage : ContentPage
     // Główna metoda odświeżająca liczniki i listę
     private void AktualizujWidok()
     {
-        var aktywne = Zwierzeta.Where(z => !z.IsArchived).ToList();
+		var aktywne = Zwierzeta.Where(z => !z.IsArchived).ToList();
 
         // 1. Aktualizacja liczników (Dashboard)
         if (LblTotalAnimals != null)
             LblTotalAnimals.Text = aktywne.Count.ToString();
 
         if (LblInQuarantine != null)
-            LblInQuarantine.Text = aktywne.Count(z => z.Status == AnimalStatus.Quarantine).ToString();
+			LblInQuarantine.Text = aktywne.Count(z => z.Status == AnimalStatus.Quarantine).ToString();
 
         // 2. Odświeżenie listy (z uwzględnieniem wpisanego tekstu w szukajce)
         string obecnyTekst = SearchBarZwierzeta?.Text ?? "";
@@ -129,11 +129,11 @@ public partial class MainPage : ContentPage
             if (!potwierdzenie)
                 return;
 
-            // Utrzymujemy spójność danych: zwierzę zarchiwizowane nie może zajmować boksu.
-            _cageAllocationService.RemoveAnimalFromCage(zwierz.Id);
+			// Utrzymujemy spójność danych: zwierzę zarchiwizowane nie może zajmować boksu.
+			_cageAllocationService.RemoveAnimalFromCage(zwierz.Id);
 
-            zwierz.IsArchived = true;
-            zwierz.ArchivedAt = DateTime.UtcNow;
+			zwierz.IsArchived = true;
+			zwierz.ArchivedAt = DateTime.UtcNow;
 
             _animalRepository.SaveChanges();
             AktualizujWidok();

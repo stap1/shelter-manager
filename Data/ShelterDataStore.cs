@@ -1,7 +1,7 @@
-using Newtonsoft.Json;
-using ShelterManager.Models;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using Newtonsoft.Json;
+using ShelterManager.Models;
 
 namespace ShelterManager.Data;
 
@@ -52,6 +52,9 @@ public sealed class ShelterDataStore
 
             // 4) Powiązanie klatek z obiektami zwierząt na podstawie LokatorId
             ResolveCageOccupants();
+
+            // 5) Powiązanie zadań z obiektami zwierząt (AnimalId -> Zwierze)
+            ResolveTaskAnimals();
         }
     }
 
@@ -66,7 +69,7 @@ public sealed class ShelterDataStore
                 Resources = new ObservableCollection<Zasob>(Resources),
                 InventoryTransactions = new ObservableCollection<InventoryTransaction>(InventoryTransactions),
                 Tasks = new ObservableCollection<Zadanie>(Tasks),
-                SchemaVersion = 3
+                SchemaVersion = 4
             };
 
             try
@@ -88,6 +91,7 @@ public sealed class ShelterDataStore
             LoadFromFile();
             EnsureSeedData();
             ResolveCageOccupants();
+            ResolveTaskAnimals();
         }
     }
 
@@ -147,7 +151,7 @@ public sealed class ShelterDataStore
                 Resources = new ObservableCollection<Zasob>(),
                 InventoryTransactions = new ObservableCollection<InventoryTransaction>(),
                 Tasks = new ObservableCollection<Zadanie>(),
-                SchemaVersion = 3
+                SchemaVersion = 4
             };
 
             var newJson = JsonConvert.SerializeObject(dto, Formatting.Indented);
@@ -169,9 +173,9 @@ public sealed class ShelterDataStore
             Animals.Add(new Zwierze
             {
                 Imie = "Burek",
-                Gatunek = AnimalSpecies.Dog,
+				Gatunek = AnimalSpecies.Dog,
                 Rasa = "Owczarek",
-                Status = AnimalStatus.Quarantine,
+				Status = AnimalStatus.Quarantine,
                 Zdjecie = "https://loremflickr.com/400/400/dog,owczarek?lock=1",
                 Wiek = "Nieznany",
                 HistoriaMedyczna = "Brak wpisów"
@@ -179,9 +183,9 @@ public sealed class ShelterDataStore
             Animals.Add(new Zwierze
             {
                 Imie = "Mruczek",
-                Gatunek = AnimalSpecies.Cat,
+				Gatunek = AnimalSpecies.Cat,
                 Rasa = "Dachowiec",
-                Status = AnimalStatus.Quarantine,
+				Status = AnimalStatus.Quarantine,
                 Zdjecie = "https://loremflickr.com/400/400/cat,dachowiec?lock=2",
                 Wiek = "Nieznany",
                 HistoriaMedyczna = "Brak wpisów"
@@ -189,9 +193,9 @@ public sealed class ShelterDataStore
             Animals.Add(new Zwierze
             {
                 Imie = "Reksio",
-                Gatunek = AnimalSpecies.Dog,
+				Gatunek = AnimalSpecies.Dog,
                 Rasa = "Labrador",
-                Status = AnimalStatus.ForAdoption,
+				Status = AnimalStatus.ForAdoption,
                 Zdjecie = "https://loremflickr.com/400/400/dog,labrador?lock=3",
                 Wiek = "Nieznany",
                 HistoriaMedyczna = "Brak wpisów"
@@ -204,8 +208,8 @@ public sealed class ShelterDataStore
         // Lista boksów jest przechowywana w danych (shelter_db.json), zamiast generować ją "na żywo".
         if (Cages.Count == 0)
         {
-            var mieszkancy = Animals
-                .Where(z => z.Status != AnimalStatus.Adopted && !z.IsArchived)
+			var mieszkancy = Animals
+				.Where(z => z.Status != AnimalStatus.Adopted && !z.IsArchived)
                 .ToList();
 
             for (int i = 1; i <= 10; i++)
@@ -236,9 +240,28 @@ public sealed class ShelterDataStore
         // Zadania: dane startowe
         if (Tasks.Count == 0)
         {
-            Tasks.Add(new Zadanie { Tresc = "Karmienie psów (Sektor A)", Godzina = "08:00", CzyZrobione = true });
-            Tasks.Add(new Zadanie { Tresc = "Spacer z Azorem", Godzina = "09:30", CzyZrobione = false });
-            Tasks.Add(new Zadanie { Tresc = "Podanie leków: Burek", Godzina = "12:00", CzyZrobione = false });
+            var today = DateTime.Today;
+            Tasks.Add(new Zadanie
+            {
+                ScheduledAt = today.AddHours(8),
+                Type = CareTaskType.Feeding,
+                Notes = "Karmienie psów (Sektor A)",
+                Status = CareTaskStatus.Planned
+            });
+            Tasks.Add(new Zadanie
+            {
+                ScheduledAt = today.AddHours(9).AddMinutes(30),
+                Type = CareTaskType.Walking,
+                Notes = "Spacer (wybierz zwierzę w edycji, jeśli dotyczy)",
+                Status = CareTaskStatus.Planned
+            });
+            Tasks.Add(new Zadanie
+            {
+                ScheduledAt = today.AddHours(12),
+                Type = CareTaskType.Medication,
+                Notes = "Podanie leków (np. Burek)",
+                Status = CareTaskStatus.Planned
+            });
 
             changed = true;
         }
@@ -253,7 +276,7 @@ public sealed class ShelterDataStore
         // Powiązanie OccupiedAnimalIds z obiektami zwierząt na potrzeby UI.
         // Lista OccupiedAnimals jest [JsonIgnore], więc po wczytaniu wymaga ponownego wypełnienia.
         var byId = Animals.ToDictionary(a => a.Id, a => a);
-        bool changed = false;
+		bool changed = false;
 
         foreach (var cage in Cages)
         {
@@ -261,23 +284,23 @@ public sealed class ShelterDataStore
 
             foreach (var animalId in cage.OccupiedAnimalIds.ToList())
             {
-                if (!byId.TryGetValue(animalId, out var animal))
-                {
-                    // Usuwamy "wiszące" Id (zwierzę usunięte z bazy).
-                    cage.OccupiedAnimalIds.Remove(animalId);
-                    changed = true;
-                    continue;
-                }
+				if (!byId.TryGetValue(animalId, out var animal))
+				{
+					// Usuwamy "wiszące" Id (zwierzę usunięte z bazy).
+					cage.OccupiedAnimalIds.Remove(animalId);
+					changed = true;
+					continue;
+				}
 
-                // Zasady biznesowe: Adopted/Archived nie powinny zajmować boksów.
-                if (animal.Status == AnimalStatus.Adopted || animal.IsArchived)
-                {
-                    cage.OccupiedAnimalIds.Remove(animalId);
-                    changed = true;
-                    continue;
-                }
+				// Zasady biznesowe: Adopted/Archived nie powinny zajmować boksów.
+				if (animal.Status == AnimalStatus.Adopted || animal.IsArchived)
+				{
+					cage.OccupiedAnimalIds.Remove(animalId);
+					changed = true;
+					continue;
+				}
 
-                cage.OccupiedAnimals.Add(animal);
+				cage.OccupiedAnimals.Add(animal);
             }
 
             // Zabezpieczenie: jeśli ktoś ustawi pojemność < 1 w JSON, normalizujemy.
@@ -285,7 +308,46 @@ public sealed class ShelterDataStore
                 cage.Capacity = 1;
         }
 
-        // Jeśli podczas wiązania wykryliśmy nieprawidłowe przydziały, zapisujemy poprawki.
+		// Jeśli podczas wiązania wykryliśmy nieprawidłowe przydziały, zapisujemy poprawki.
+		if (changed)
+			SaveChanges();
+    }
+
+    private void ResolveTaskAnimals()
+    {
+        // Powiązanie AnimalId z obiektem zwierzęcia na potrzeby UI.
+        var byId = Animals.ToDictionary(a => a.Id, a => a);
+        bool changed = false;
+
+        foreach (var task in Tasks)
+        {
+            if (task.AnimalId is not Guid animalId)
+            {
+                task.SetResolvedAnimal(null);
+                continue;
+            }
+
+            if (!byId.TryGetValue(animalId, out var animal))
+            {
+                // Usuwamy "wiszące" Id.
+                task.AnimalId = null;
+                task.SetResolvedAnimal(null);
+                changed = true;
+                continue;
+            }
+
+            // Zasady biznesowe: Adopted/Archived nie powinny być przypinane do harmonogramu.
+            if (animal.Status == AnimalStatus.Adopted || animal.IsArchived)
+            {
+                task.AnimalId = null;
+                task.SetResolvedAnimal(null);
+                changed = true;
+                continue;
+            }
+
+            task.SetResolvedAnimal(animal);
+        }
+
         if (changed)
             SaveChanges();
     }
