@@ -22,6 +22,7 @@ public sealed class ShelterDataStore
     public ObservableCollection<Zasob> Resources { get; } = new();
     public ObservableCollection<InventoryTransaction> InventoryTransactions { get; } = new();
     public ObservableCollection<Zadanie> Tasks { get; } = new();
+    public ObservableCollection<AdoptionApplication> AdoptionApplications { get; } = new();
 
     public ShelterDataStore()
     {
@@ -55,6 +56,9 @@ public sealed class ShelterDataStore
 
             // 5) Powiązanie zadań z obiektami zwierząt (AnimalId -> Zwierze)
             ResolveTaskAnimals();
+
+            // 6) Powiązanie wniosków adopcyjnych z obiektami zwierząt (AnimalId -> Zwierze)
+            ResolveAdoptionApplicationAnimals();
         }
     }
 
@@ -69,7 +73,8 @@ public sealed class ShelterDataStore
                 Resources = new ObservableCollection<Zasob>(Resources),
                 InventoryTransactions = new ObservableCollection<InventoryTransaction>(InventoryTransactions),
                 Tasks = new ObservableCollection<Zadanie>(Tasks),
-                SchemaVersion = 4
+                AdoptionApplications = new ObservableCollection<AdoptionApplication>(AdoptionApplications),
+                SchemaVersion = 5
             };
 
             try
@@ -92,6 +97,7 @@ public sealed class ShelterDataStore
             EnsureSeedData();
             ResolveCageOccupants();
             ResolveTaskAnimals();
+            ResolveAdoptionApplicationAnimals();
         }
     }
 
@@ -104,6 +110,7 @@ public sealed class ShelterDataStore
             Resources.Clear();
             InventoryTransactions.Clear();
             Tasks.Clear();
+            AdoptionApplications.Clear();
             return;
         }
 
@@ -117,6 +124,7 @@ public sealed class ShelterDataStore
             Resources.Clear();
             InventoryTransactions.Clear();
             Tasks.Clear();
+            AdoptionApplications.Clear();
 
             if (dto is null) return;
 
@@ -125,6 +133,7 @@ public sealed class ShelterDataStore
             foreach (var r in dto.Resources ?? new()) Resources.Add(r);
             foreach (var tx in dto.InventoryTransactions ?? new()) InventoryTransactions.Add(tx);
             foreach (var t in dto.Tasks ?? new()) Tasks.Add(t);
+            foreach (var a in dto.AdoptionApplications ?? new()) AdoptionApplications.Add(a);
         }
         catch (Exception ex)
         {
@@ -151,7 +160,8 @@ public sealed class ShelterDataStore
                 Resources = new ObservableCollection<Zasob>(),
                 InventoryTransactions = new ObservableCollection<InventoryTransaction>(),
                 Tasks = new ObservableCollection<Zadanie>(),
-                SchemaVersion = 4
+                AdoptionApplications = new ObservableCollection<AdoptionApplication>(),
+                SchemaVersion = 5
             };
 
             var newJson = JsonConvert.SerializeObject(dto, Formatting.Indented);
@@ -350,5 +360,21 @@ public sealed class ShelterDataStore
 
         if (changed)
             SaveChanges();
+    }
+
+    private void ResolveAdoptionApplicationAnimals()
+    {
+        // Powiązanie AnimalId z obiektem zwierzęcia na potrzeby UI.
+        // W przeciwieństwie do zadań, wnioski adopcyjne mogą dotyczyć zwierzęcia Adopted
+        // (np. zatwierdzony wniosek). Dlatego nie czyścimy powiązania dla Adopted/Archived.
+        var byId = Animals.ToDictionary(a => a.Id, a => a);
+
+        foreach (var app in AdoptionApplications)
+        {
+            if (byId.TryGetValue(app.AnimalId, out var animal))
+                app.SetResolvedAnimal(animal);
+            else
+                app.SetResolvedAnimal(null);
+        }
     }
 }

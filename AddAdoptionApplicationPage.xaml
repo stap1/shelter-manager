@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ShelterManager.AddAdoptionApplicationPage"
+             Title="Nowy wniosek"
+             BackgroundColor="#F4F7FA">
+
+    <Grid MaximumWidthRequest="900" HorizontalOptions="Center" RowDefinitions="Auto, *">
+
+        <VerticalStackLayout Grid.Row="0" Margin="0,30,0,20" Spacing="6">
+            <Label Text="NOWY WNIOSEK ADOPCYJNY"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="#1A237E"
+                   HorizontalOptions="Center"
+                   CharacterSpacing="1"/>
+
+            <Label Text="Wybierz zwierzę i wprowadź dane wnioskodawcy"
+                   FontSize="14"
+                   TextColor="#7986CB"
+                   HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+
+        <ScrollView Grid.Row="1" Margin="20,0,20,20">
+            <Border StrokeShape="RoundRectangle 20" BackgroundColor="White" StrokeThickness="0" Padding="16">
+                <Border.Shadow>
+                    <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.12" Radius="10"/>
+                </Border.Shadow>
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="Zwierzę" FontAttributes="Bold" TextColor="#37474F" FontSize="14"/>
+                    <Picker x:Name="PickerAnimal" Title="Wybierz zwierzę"/>
+
+                    <Label Text="Wnioskodawca" FontAttributes="Bold" TextColor="#37474F" FontSize="14"/>
+                    <Entry x:Name="EntryApplicant" Placeholder="Imię i nazwisko" BackgroundColor="#F5F7FA"/>
+
+                    <Label Text="Kontakt" FontAttributes="Bold" TextColor="#37474F" FontSize="14"/>
+                    <Entry x:Name="EntryContact" Placeholder="Telefon lub e-mail" BackgroundColor="#F5F7FA"/>
+
+                    <Label Text="Notatki" FontAttributes="Bold" TextColor="#37474F" FontSize="14"/>
+                    <Editor x:Name="EditorNotes" Placeholder="Dodatkowe informacje..." AutoSize="TextChanges" BackgroundColor="#F5F7FA"/>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0" Text="ZAPISZ" Clicked="OnSaveClicked" CornerRadius="16" FontAttributes="Bold" BackgroundColor="#4CAF50" TextColor="White"/>
+                        <Button Grid.Column="1" Text="ANULUJ" Clicked="OnCancelClicked" CornerRadius="16" FontAttributes="Bold" BackgroundColor="#E3F2FD" TextColor="#1A237E"/>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+        </ScrollView>
+    </Grid>
+</ContentPage>

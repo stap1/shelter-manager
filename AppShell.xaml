@@ -36,6 +36,11 @@
             Route="TasksPage" />
 
         <ShellContent
+            Title="ADOPCJE"
+            ContentTemplate="{DataTemplate local:AdoptionApplicationsPage}"
+            Route="AdoptionApplicationsPage" />
+
+        <ShellContent
             Title="ARCHIWUM"
             ContentTemplate="{DataTemplate local:ArchivePage}"
             Route="ArchivePage" />

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:ShelterManager.Models"
+             x:Class="ShelterManager.AdoptionApplicationsPage"
+             Title="Adopcje"
+             BackgroundColor="#F4F7FA">
+
+    <Grid MaximumWidthRequest="900" HorizontalOptions="Center" RowDefinitions="Auto, Auto, *">
+
+        <VerticalStackLayout Grid.Row="0" Margin="0,30,0,20" Spacing="6">
+            <Label Text="WNIOSKI ADOPCYJNE"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="#1A237E"
+                   HorizontalOptions="Center"
+                   CharacterSpacing="1"/>
+
+            <Label Text="Workflow: Nowy → W weryfikacji → Zatwierdzony/Odrzucony"
+                   FontSize="14"
+                   TextColor="#7986CB"
+                   HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+
+        <Border Grid.Row="1"
+                Margin="20,0,20,20"
+                StrokeShape="RoundRectangle 20"
+                BackgroundColor="White"
+                StrokeThickness="0"
+                Padding="14">
+
+            <Border.Shadow>
+                <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.15" Radius="10"/>
+            </Border.Shadow>
+
+            <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto" RowSpacing="10" ColumnSpacing="10">
+
+                <SearchBar x:Name="SearchBar"
+                           Grid.Row="0" Grid.Column="0"
+                           Placeholder="Szukaj: wnioskodawca lub zwierzę"
+                           TextChanged="OnSearchTextChanged"
+                           BackgroundColor="#F5F7FA"/>
+
+                <Button Grid.Row="0" Grid.Column="1"
+                        Text="+ DODAJ"
+                        Clicked="OnAddClicked"
+                        CornerRadius="16"
+                        FontAttributes="Bold"
+                        BackgroundColor="#4CAF50"
+                        TextColor="White"/>
+
+                <Picker x:Name="PickerStatus"
+                        Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                        Title="Status"
+                        SelectedIndexChanged="OnFilterChanged"/>
+            </Grid>
+        </Border>
+
+        <CollectionView Grid.Row="2"
+                        x:Name="Lista"
+                        ItemsSource="{Binding WidoczneWnioski}"
+                        SelectionMode="Single"
+                        SelectionChanged="OnSelectionChanged"
+                        Margin="20,0,20,20">
+
+            <CollectionView.EmptyView>
+                <Label Text="Brak wniosków dla wybranych kryteriów."
+                       TextColor="#90A4AE"
+                       HorizontalOptions="Center"
+                       Margin="0,20,0,0"/>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:AdoptionApplication">
+                    <Border StrokeShape="RoundRectangle 18"
+                            BackgroundColor="White"
+                            StrokeThickness="0"
+                            Padding="14"
+                            Margin="0,0,0,12">
+
+                        <Border.Shadow>
+                            <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.12" Radius="10"/>
+                        </Border.Shadow>
+
+                        <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*, Auto" RowSpacing="6">
+                            <Label Grid.Row="0" Grid.Column="0"
+                                   Text="{Binding ApplicantName}"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="#37474F"/>
+
+                            <Border Grid.Row="0" Grid.Column="1"
+                                    BackgroundColor="#E3F2FD"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    Padding="10,4">
+                                <Label Text="{Binding StatusOpis}"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="#1565C0"/>
+                            </Border>
+
+                            <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                   Text="{Binding AnimalOpis, StringFormat='Zwierzę: {0}'}"
+                                   FontSize="13"
+                                   TextColor="#607D8B"/>
+
+                            <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                   Text="{Binding CreatedAtOpis, StringFormat='Dodano: {0}'}"
+                                   FontSize="12"
+                                   TextColor="#90A4AE"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+</ContentPage>
