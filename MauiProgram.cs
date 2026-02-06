@@ -44,6 +44,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<CageAllocationService>();
         builder.Services.AddSingleton<AdoptionWorkflowService>();
         builder.Services.AddSingleton<AnimalEventService>();
+        builder.Services.AddSingleton<ReportService>();
 
         var app = builder.Build();
         // Umożliwia pobieranie serwisów w stronach tworzonych przez DataTemplate.

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:reports="clr-namespace:ShelterManager.Models.Reports"
+             x:Class="ShelterManager.ReportsPage"
+             Title="Raporty"
+             BackgroundColor="#F4F7FA">
+
+    <Grid MaximumWidthRequest="900" HorizontalOptions="Center" RowDefinitions="Auto, Auto, *">
+
+        <!-- Nagłówek -->
+        <VerticalStackLayout Grid.Row="0" Margin="0,30,0,20" Spacing="6">
+            <Label Text="RAPORTY"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="#1A237E"
+                   HorizontalOptions="Center"
+                   CharacterSpacing="1"/>
+
+            <Label Text="Podsumowanie schroniska"
+                   FontSize="14"
+                   TextColor="#7986CB"
+                   HorizontalOptions="Center"/>
+
+            <Label Text="{Binding PeriodText}"
+                   FontSize="12"
+                   TextColor="#90A4AE"
+                   HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+
+        <!-- Zakres dat + odświeżanie -->
+        <Border Grid.Row="1"
+                Margin="20,0,20,20"
+                StrokeShape="RoundRectangle 20"
+                BackgroundColor="White"
+                StrokeThickness="0"
+                Padding="14">
+
+            <Border.Shadow>
+                <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.15" Radius="10"/>
+            </Border.Shadow>
+
+            <Grid ColumnDefinitions="Auto, *, Auto, *, Auto" RowDefinitions="Auto" ColumnSpacing="10">
+
+                <Label Grid.Column="0" Text="Od:" VerticalTextAlignment="Center" TextColor="#607D8B" FontAttributes="Bold"/>
+                <DatePicker x:Name="StartDatePicker" Grid.Column="1" DateSelected="OnDateChanged"/>
+
+                <Label Grid.Column="2" Text="Do:" VerticalTextAlignment="Center" TextColor="#607D8B" FontAttributes="Bold"/>
+                <DatePicker x:Name="EndDatePicker" Grid.Column="3" DateSelected="OnDateChanged"/>
+
+                <Button Grid.Column="4"
+                        Text="ODŚWIEŻ"
+                        Clicked="OnRefreshClicked"
+                        CornerRadius="16"
+                        FontAttributes="Bold"
+                        BackgroundColor="#2196F3"
+                        TextColor="White"/>
+            </Grid>
+        </Border>
+
+        <ScrollView Grid.Row="2" Margin="20,0">
+            <VerticalStackLayout Spacing="14">
+
+                <!-- Zwierzęta -->
+                <Border StrokeShape="RoundRectangle 18" BackgroundColor="White" StrokeThickness="0" Padding="14">
+                    <Border.Shadow>
+                        <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.10" Radius="10"/>
+                    </Border.Shadow>
+
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" RowSpacing="6">
+                        <Label Grid.ColumnSpan="2" Text="ZWIERZĘTA" FontAttributes="Bold" TextColor="#263238"/>
+                        <Label Grid.Row="1" Grid.Column="0" Text="{Binding ActiveAnimalsCount, StringFormat='Aktywne: {0}'}" TextColor="#607D8B"/>
+                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding ArchivedAnimalsCount, StringFormat='Archiwum: {0}'}" TextColor="#607D8B" HorizontalTextAlignment="End"/>
+                    </Grid>
+                </Border>
+
+                <!-- Boksy -->
+                <Border StrokeShape="RoundRectangle 18" BackgroundColor="White" StrokeThickness="0" Padding="14">
+                    <Border.Shadow>
+                        <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.10" Radius="10"/>
+                    </Border.Shadow>
+
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="2">
+                            <Label Grid.ColumnSpan="2" Text="BOKSY" FontAttributes="Bold" TextColor="#263238"/>
+                            <Label Grid.Row="1" Grid.Column="0" Text="{Binding Cages.TotalOccupied, StringFormat='Zajęte miejsca: {0}'}" TextColor="#607D8B"/>
+                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding Cages.TotalCapacity, StringFormat='Pojemność: {0}'}" TextColor="#607D8B" HorizontalTextAlignment="End"/>
+                        </Grid>
+
+                        <Label Text="{Binding Cages.OccupancyPercentText, StringFormat='Obłożenie: {0}'}" TextColor="#1A237E" FontAttributes="Bold"/>
+
+                        <VerticalStackLayout Spacing="6"
+                                             BindableLayout.ItemsSource="{Binding Cages.Cages}">
+                            <VerticalStackLayout.BindableLayout.EmptyView>
+                                <Label Text="Brak boksów." TextColor="#90A4AE"/>
+                            </VerticalStackLayout.BindableLayout.EmptyView>
+
+                            <VerticalStackLayout.BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="reports:CageOccupancyItemDto">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" Padding="0,2">
+                                        <Label Grid.Column="0" Text="{Binding Numer, StringFormat='Boks {0}'}" TextColor="#607D8B"/>
+                                        <Label Grid.Column="2" Text="{Binding OccupancyText}" TextColor="#607D8B" HorizontalTextAlignment="End"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </VerticalStackLayout.BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Adopcje w okresie -->
+                <Border StrokeShape="RoundRectangle 18" BackgroundColor="White" StrokeThickness="0" Padding="14">
+                    <Border.Shadow>
+                        <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.10" Radius="10"/>
+                    </Border.Shadow>
+
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="6">
+                        <Label Grid.ColumnSpan="2" Text="ADOPCJE W OKRESIE" FontAttributes="Bold" TextColor="#263238"/>
+                        <Label Grid.Row="1" Grid.Column="0" Text="{Binding AdoptionsApprovedInPeriodCount, StringFormat='Zatwierdzone: {0}'}" TextColor="#607D8B"/>
+                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding GeneratedAtText, StringFormat='Aktualizacja: {0}'}" TextColor="#90A4AE" HorizontalTextAlignment="End" FontSize="11"/>
+                    </Grid>
+                </Border>
+
+                <!-- Zużycie zasobów -->
+                <Border StrokeShape="RoundRectangle 18" BackgroundColor="White" StrokeThickness="0" Padding="14">
+                    <Border.Shadow>
+                        <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.10" Radius="10"/>
+                    </Border.Shadow>
+
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="2">
+                            <Label Grid.ColumnSpan="2" Text="ZUŻYCIE ZASOBÓW W OKRESIE" FontAttributes="Bold" TextColor="#263238"/>
+                            <Label Grid.Row="1" Grid.Column="0" Text="{Binding TotalConsumedText, StringFormat='Łącznie: {0}'}" TextColor="#607D8B"/>
+                        </Grid>
+
+                        <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding ResourceConsumption}">
+                            <VerticalStackLayout.BindableLayout.EmptyView>
+                                <Label Text="Brak transakcji zużycia w okresie." TextColor="#90A4AE"/>
+                            </VerticalStackLayout.BindableLayout.EmptyView>
+
+                            <VerticalStackLayout.BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="reports:ResourceConsumptionItemDto">
+                                    <Grid ColumnDefinitions="*,Auto" Padding="0,2">
+                                        <Label Text="{Binding ResourceName}" TextColor="#607D8B"/>
+                                        <Label Grid.Column="1" Text="{Binding ConsumedText}" TextColor="#607D8B" HorizontalTextAlignment="End"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </VerticalStackLayout.BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Zadania -->
+                <Border StrokeShape="RoundRectangle 18" BackgroundColor="White" StrokeThickness="0" Padding="14">
+                    <Border.Shadow>
+                        <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.10" Radius="10"/>
+                    </Border.Shadow>
+
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="2">
+                            <Label Grid.ColumnSpan="2" Text="ZADANIA" FontAttributes="Bold" TextColor="#263238"/>
+                            <Label Grid.Row="1" Grid.Column="0" Text="{Binding Tasks.TodayPlannedCount, StringFormat='Dzisiaj (planowane): {0}'}" TextColor="#607D8B"/>
+                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding Tasks.OverduePlannedCount, StringFormat='Zaległe: {0}'}" TextColor="#607D8B" HorizontalTextAlignment="End"/>
+                        </Grid>
+
+                        <Label Text="DZISIAJ" TextColor="#1A237E" FontAttributes="Bold"/>
+                        <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Tasks.TodayTasks}">
+                            <VerticalStackLayout.BindableLayout.EmptyView>
+                                <Label Text="Brak planowanych zadań na dziś." TextColor="#90A4AE"/>
+                            </VerticalStackLayout.BindableLayout.EmptyView>
+                            <VerticalStackLayout.BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="reports:TaskMiniDto">
+                                    <VerticalStackLayout Spacing="1" Padding="0,2">
+                                        <Label Text="{Binding TypeText}" TextColor="#607D8B"/>
+                                        <Label Text="{Binding WhenText}" TextColor="#90A4AE" FontSize="11"/>
+                                        <Label Text="{Binding AnimalText}" TextColor="#90A4AE" FontSize="11"/>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </VerticalStackLayout.BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <Label Text="ZALEGŁE" TextColor="#1A237E" FontAttributes="Bold" Margin="0,6,0,0"/>
+                        <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Tasks.OverdueTasks}">
+                            <VerticalStackLayout.BindableLayout.EmptyView>
+                                <Label Text="Brak zaległych zadań." TextColor="#90A4AE"/>
+                            </VerticalStackLayout.BindableLayout.EmptyView>
+                            <VerticalStackLayout.BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="reports:TaskMiniDto">
+                                    <VerticalStackLayout Spacing="1" Padding="0,2">
+                                        <Label Text="{Binding TypeText}" TextColor="#607D8B"/>
+                                        <Label Text="{Binding WhenText}" TextColor="#90A4AE" FontSize="11"/>
+                                        <Label Text="{Binding AnimalText}" TextColor="#90A4AE" FontSize="11"/>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </VerticalStackLayout.BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

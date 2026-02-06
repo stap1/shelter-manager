@@ -46,6 +46,11 @@
             Route="ArchivePage" />
 
         <ShellContent
+            Title="RAPORTY"
+            ContentTemplate="{DataTemplate local:ReportsPage}"
+            Route="ReportsPage" />
+
+        <ShellContent
             Title="WYLOGUJ"
             ContentTemplate="{DataTemplate local:LoginPage}"
             Route="LogoutPage" />
