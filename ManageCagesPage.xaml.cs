@@ -1,8 +1,7 @@
-using System.Collections.ObjectModel;
-using System.Linq;
 using ShelterManager.Data.Repositories;
 using ShelterManager.Infrastructure;
 using ShelterManager.Models;
+using System.Collections.ObjectModel;
 
 namespace ShelterManager;
 

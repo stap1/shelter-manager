@@ -1,7 +1,7 @@
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using Newtonsoft.Json;
 using ShelterManager.Models;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace ShelterManager.Data;
 
@@ -20,6 +20,7 @@ public sealed class ShelterDataStore
     public ObservableCollection<Zwierze> Animals { get; } = new();
     public ObservableCollection<Cage> Cages { get; } = new();
     public ObservableCollection<Zasob> Resources { get; } = new();
+    public ObservableCollection<InventoryTransaction> InventoryTransactions { get; } = new();
     public ObservableCollection<Zadanie> Tasks { get; } = new();
 
     public ShelterDataStore()
@@ -63,8 +64,9 @@ public sealed class ShelterDataStore
                 Animals = new ObservableCollection<Zwierze>(Animals),
                 Cages = new ObservableCollection<Cage>(Cages),
                 Resources = new ObservableCollection<Zasob>(Resources),
+                InventoryTransactions = new ObservableCollection<InventoryTransaction>(InventoryTransactions),
                 Tasks = new ObservableCollection<Zadanie>(Tasks),
-                SchemaVersion = 2
+                SchemaVersion = 3
             };
 
             try
@@ -96,6 +98,7 @@ public sealed class ShelterDataStore
             Animals.Clear();
             Cages.Clear();
             Resources.Clear();
+            InventoryTransactions.Clear();
             Tasks.Clear();
             return;
         }
@@ -108,6 +111,7 @@ public sealed class ShelterDataStore
             Animals.Clear();
             Cages.Clear();
             Resources.Clear();
+            InventoryTransactions.Clear();
             Tasks.Clear();
 
             if (dto is null) return;
@@ -115,6 +119,7 @@ public sealed class ShelterDataStore
             foreach (var a in dto.Animals ?? new()) Animals.Add(a);
             foreach (var c in dto.Cages ?? new()) Cages.Add(c);
             foreach (var r in dto.Resources ?? new()) Resources.Add(r);
+            foreach (var tx in dto.InventoryTransactions ?? new()) InventoryTransactions.Add(tx);
             foreach (var t in dto.Tasks ?? new()) Tasks.Add(t);
         }
         catch (Exception ex)
@@ -140,8 +145,9 @@ public sealed class ShelterDataStore
                 Animals = new ObservableCollection<Zwierze>(animals),
                 Cages = new ObservableCollection<Cage>(),
                 Resources = new ObservableCollection<Zasob>(),
+                InventoryTransactions = new ObservableCollection<InventoryTransaction>(),
                 Tasks = new ObservableCollection<Zadanie>(),
-                SchemaVersion = 2
+                SchemaVersion = 3
             };
 
             var newJson = JsonConvert.SerializeObject(dto, Formatting.Indented);
@@ -163,9 +169,9 @@ public sealed class ShelterDataStore
             Animals.Add(new Zwierze
             {
                 Imie = "Burek",
-				Gatunek = AnimalSpecies.Dog,
+                Gatunek = AnimalSpecies.Dog,
                 Rasa = "Owczarek",
-				Status = AnimalStatus.Quarantine,
+                Status = AnimalStatus.Quarantine,
                 Zdjecie = "https://loremflickr.com/400/400/dog,owczarek?lock=1",
                 Wiek = "Nieznany",
                 HistoriaMedyczna = "Brak wpisów"
@@ -173,9 +179,9 @@ public sealed class ShelterDataStore
             Animals.Add(new Zwierze
             {
                 Imie = "Mruczek",
-				Gatunek = AnimalSpecies.Cat,
+                Gatunek = AnimalSpecies.Cat,
                 Rasa = "Dachowiec",
-				Status = AnimalStatus.Quarantine,
+                Status = AnimalStatus.Quarantine,
                 Zdjecie = "https://loremflickr.com/400/400/cat,dachowiec?lock=2",
                 Wiek = "Nieznany",
                 HistoriaMedyczna = "Brak wpisów"
@@ -183,9 +189,9 @@ public sealed class ShelterDataStore
             Animals.Add(new Zwierze
             {
                 Imie = "Reksio",
-				Gatunek = AnimalSpecies.Dog,
+                Gatunek = AnimalSpecies.Dog,
                 Rasa = "Labrador",
-				Status = AnimalStatus.ForAdoption,
+                Status = AnimalStatus.ForAdoption,
                 Zdjecie = "https://loremflickr.com/400/400/dog,labrador?lock=3",
                 Wiek = "Nieznany",
                 HistoriaMedyczna = "Brak wpisów"
@@ -198,8 +204,8 @@ public sealed class ShelterDataStore
         // Lista boksów jest przechowywana w danych (shelter_db.json), zamiast generować ją "na żywo".
         if (Cages.Count == 0)
         {
-			var mieszkancy = Animals
-				.Where(z => z.Status != AnimalStatus.Adopted && !z.IsArchived)
+            var mieszkancy = Animals
+                .Where(z => z.Status != AnimalStatus.Adopted && !z.IsArchived)
                 .ToList();
 
             for (int i = 1; i <= 10; i++)
@@ -218,11 +224,11 @@ public sealed class ShelterDataStore
         // Magazyn: dane startowe
         if (Resources.Count == 0)
         {
-            Resources.Add(new Zasob { Nazwa = "Karma sucha (Pies)", Ilosc = 20, Jednostka = "szt." });
-            Resources.Add(new Zasob { Nazwa = "Karma mokra (Kot)", Ilosc = 15, Jednostka = "szt." });
-            Resources.Add(new Zasob { Nazwa = "Podkłady higieniczne", Ilosc = 5, Jednostka = "szt." });
-            Resources.Add(new Zasob { Nazwa = "Szampon", Ilosc = 1, Jednostka = "szt." });
-            Resources.Add(new Zasob { Nazwa = "Smycze", Ilosc = 8, Jednostka = "szt." });
+            Resources.Add(new Zasob { Nazwa = "Karma sucha (Pies)", Ilosc = 20, Jednostka = "szt.", LowStockThreshold = 10 });
+            Resources.Add(new Zasob { Nazwa = "Karma mokra (Kot)", Ilosc = 15, Jednostka = "szt.", LowStockThreshold = 10 });
+            Resources.Add(new Zasob { Nazwa = "Podkłady higieniczne", Ilosc = 5, Jednostka = "szt.", LowStockThreshold = 5 });
+            Resources.Add(new Zasob { Nazwa = "Szampon", Ilosc = 1, Jednostka = "szt.", LowStockThreshold = 2 });
+            Resources.Add(new Zasob { Nazwa = "Smycze", Ilosc = 8, Jednostka = "szt.", LowStockThreshold = 5 });
 
             changed = true;
         }
@@ -247,7 +253,7 @@ public sealed class ShelterDataStore
         // Powiązanie OccupiedAnimalIds z obiektami zwierząt na potrzeby UI.
         // Lista OccupiedAnimals jest [JsonIgnore], więc po wczytaniu wymaga ponownego wypełnienia.
         var byId = Animals.ToDictionary(a => a.Id, a => a);
-		bool changed = false;
+        bool changed = false;
 
         foreach (var cage in Cages)
         {
@@ -255,23 +261,23 @@ public sealed class ShelterDataStore
 
             foreach (var animalId in cage.OccupiedAnimalIds.ToList())
             {
-				if (!byId.TryGetValue(animalId, out var animal))
-				{
-					// Usuwamy "wiszące" Id (zwierzę usunięte z bazy).
-					cage.OccupiedAnimalIds.Remove(animalId);
-					changed = true;
-					continue;
-				}
+                if (!byId.TryGetValue(animalId, out var animal))
+                {
+                    // Usuwamy "wiszące" Id (zwierzę usunięte z bazy).
+                    cage.OccupiedAnimalIds.Remove(animalId);
+                    changed = true;
+                    continue;
+                }
 
-				// Zasady biznesowe: Adopted/Archived nie powinny zajmować boksów.
-				if (animal.Status == AnimalStatus.Adopted || animal.IsArchived)
-				{
-					cage.OccupiedAnimalIds.Remove(animalId);
-					changed = true;
-					continue;
-				}
+                // Zasady biznesowe: Adopted/Archived nie powinny zajmować boksów.
+                if (animal.Status == AnimalStatus.Adopted || animal.IsArchived)
+                {
+                    cage.OccupiedAnimalIds.Remove(animalId);
+                    changed = true;
+                    continue;
+                }
 
-				cage.OccupiedAnimals.Add(animal);
+                cage.OccupiedAnimals.Add(animal);
             }
 
             // Zabezpieczenie: jeśli ktoś ustawi pojemność < 1 w JSON, normalizujemy.
@@ -279,8 +285,8 @@ public sealed class ShelterDataStore
                 cage.Capacity = 1;
         }
 
-		// Jeśli podczas wiązania wykryliśmy nieprawidłowe przydziały, zapisujemy poprawki.
-		if (changed)
-			SaveChanges();
+        // Jeśli podczas wiązania wykryliśmy nieprawidłowe przydziały, zapisujemy poprawki.
+        if (changed)
+            SaveChanges();
     }
 }

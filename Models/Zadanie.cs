@@ -26,9 +26,12 @@ public class Zadanie : INotifyPropertyChanged
         }
     }
 
-    public event PropertyChangedEventHandler PropertyChanged;
+    // Zdarzenie może być puste (nikt nie subskrybuje), więc dopuszczamy null.
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-    protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    // CallerMemberName może zwrócić null w nietypowych sytuacjach, a dodatkowo
+    // włączone NRT (nullable reference types) traktuje "= null" dla string jako błąd.
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

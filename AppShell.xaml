@@ -36,6 +36,11 @@
             Route="TasksPage" />
 
         <ShellContent
+            Title="ARCHIWUM"
+            ContentTemplate="{DataTemplate local:ArchivePage}"
+            Route="ArchivePage" />
+
+        <ShellContent
             Title="WYLOGUJ"
             ContentTemplate="{DataTemplate local:LoginPage}"
             Route="LogoutPage" />

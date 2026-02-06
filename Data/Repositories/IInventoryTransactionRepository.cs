@@ -1,0 +1,15 @@
+using ShelterManager.Models;
+using System.Collections.ObjectModel;
+
+namespace ShelterManager.Data.Repositories;
+
+/// <summary>
+/// Repozytorium transakcji magazynowych.
+/// Utrzymujemy osobną kolekcję, aby nie mieszać logiki zasobów z logiką historii zmian.
+/// </summary>
+public interface IInventoryTransactionRepository
+{
+    ObservableCollection<InventoryTransaction> Transactions { get; }
+    void SaveChanges();
+    void Reload();
+}

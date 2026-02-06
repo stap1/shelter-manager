@@ -1,9 +1,9 @@
-﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using ShelterManager.Data.Repositories;
 using ShelterManager.Infrastructure;
 using ShelterManager.Models;
 using ShelterManager.Services;
+using System.Collections.ObjectModel;
 
 namespace ShelterManager;
 
@@ -49,7 +49,7 @@ public partial class MainPage : ContentPage
                 // Dispatcher zapewnia bezpieczne odświeżenie UI bez "Task.Delay"
                 Dispatcher.Dispatch(() =>
                 {
-					_animalRepository.SaveChanges();
+                    _animalRepository.SaveChanges();
                     AktualizujWidok();
                 });
             }
@@ -61,13 +61,16 @@ public partial class MainPage : ContentPage
     {
         string fraza = e.NewTextValue?.ToLower() ?? "";
 
+        // Na ekranie głównym pokazujemy tylko aktywne zwierzęta (niezarchiwizowane).
+        var aktywne = Zwierzeta.Where(z => !z.IsArchived).ToList();
+
         if (string.IsNullOrWhiteSpace(fraza))
         {
-            FiltrowaneZwierzeta = new ObservableCollection<Zwierze>(Zwierzeta);
+            FiltrowaneZwierzeta = new ObservableCollection<Zwierze>(aktywne);
         }
         else
         {
-            var wyniki = Zwierzeta.Where(z => z.Imie.ToLower().Contains(fraza)).ToList();
+            var wyniki = aktywne.Where(z => z.Imie.ToLower().Contains(fraza)).ToList();
             FiltrowaneZwierzeta = new ObservableCollection<Zwierze>(wyniki);
         }
         OnPropertyChanged(nameof(FiltrowaneZwierzeta)); // Ważne: powiadamia UI o zmianie listy
@@ -76,12 +79,14 @@ public partial class MainPage : ContentPage
     // Główna metoda odświeżająca liczniki i listę
     private void AktualizujWidok()
     {
+        var aktywne = Zwierzeta.Where(z => !z.IsArchived).ToList();
+
         // 1. Aktualizacja liczników (Dashboard)
         if (LblTotalAnimals != null)
-            LblTotalAnimals.Text = Zwierzeta.Count.ToString();
+            LblTotalAnimals.Text = aktywne.Count.ToString();
 
         if (LblInQuarantine != null)
-			LblInQuarantine.Text = Zwierzeta.Count(z => z.Status == AnimalStatus.Quarantine).ToString();
+            LblInQuarantine.Text = aktywne.Count(z => z.Status == AnimalStatus.Quarantine).ToString();
 
         // 2. Odświeżenie listy (z uwzględnieniem wpisanego tekstu w szukajce)
         string obecnyTekst = SearchBarZwierzeta?.Text ?? "";
@@ -105,23 +110,33 @@ public partial class MainPage : ContentPage
     // Usuwanie (Tylko dla Admina)
     private async void OnDeleteClicked(object sender, EventArgs e)
     {
-        if (LoginPage.RolaUzytkownika != "Admin")
+        // Decyzja projektowa: archiwizacja (soft delete) dostępna dla Administratora i Pracownika.
+        // Trwałe usunięcie jest dostępne tylko w zakładce Archiwum i tylko dla Administratora.
+        if (LoginPage.RolaUzytkownika is not ("Admin" or "Pracownik"))
         {
-            await DisplayAlert("Brak uprawnień", "Tylko Administrator może usuwać zwierzęta z bazy danych!", "OK");
+            await DisplayAlert("Brak uprawnień", "Musisz być zalogowany jako Administrator lub Pracownik.", "OK");
             return;
         }
 
         if (sender is MenuFlyoutItem menu && menu.CommandParameter is Zwierze zwierz)
         {
-            bool potwierdzenie = await DisplayAlert("Potwierdzenie", $"Czy na pewno chcesz trwale usunąć: {zwierz.Imie}?", "Tak", "Nie");
-            if (potwierdzenie)
-            {
-				// Utrzymujemy spójność danych: jeśli zwierzę było w boksie, zdejmujemy je.
-				_cageAllocationService.RemoveAnimalFromCage(zwierz.Id);
-                Zwierzeta.Remove(zwierz);
-                _animalRepository.SaveChanges();
-                AktualizujWidok();
-            }
+            bool potwierdzenie = await DisplayAlert(
+                "Archiwum",
+                $"Czy chcesz przenieść do archiwum: {zwierz.Imie}?\n\nZwierzę będzie ukryte na liście głównej, ale nadal będzie dostępne w zakładce 'Archiwum'.",
+                "Archiwizuj",
+                "Anuluj");
+
+            if (!potwierdzenie)
+                return;
+
+            // Utrzymujemy spójność danych: zwierzę zarchiwizowane nie może zajmować boksu.
+            _cageAllocationService.RemoveAnimalFromCage(zwierz.Id);
+
+            zwierz.IsArchived = true;
+            zwierz.ArchivedAt = DateTime.UtcNow;
+
+            _animalRepository.SaveChanges();
+            AktualizujWidok();
         }
     }
 }

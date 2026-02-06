@@ -53,7 +53,7 @@
 
                         <Grid RowDefinitions="Auto, *, Auto" Padding="15">
 
-                            <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+                            <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto">
                                 <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
                                     <Border StrokeShape="RoundRectangle 12" BackgroundColor="#E3F2FD" StrokeThickness="0" Padding="8">
                                         <Label Text="📦" FontSize="18"/>
@@ -68,6 +68,19 @@
                                 </HorizontalStackLayout>
 
                                 <Button Grid.Column="1"
+                                        Text="⚙"
+                                        Clicked="OnEditThresholdClicked"
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="#78909C"
+                                        FontSize="18"
+                                        HeightRequest="30"
+                                        WidthRequest="30"
+                                        Padding="0"
+                                        HorizontalOptions="End"
+                                        VerticalOptions="Start"/>
+
+                                <Button Grid.Column="2"
                                         Text="✕"
                                         Clicked="OnDeleteClicked"
                                         CommandParameter="{Binding .}"

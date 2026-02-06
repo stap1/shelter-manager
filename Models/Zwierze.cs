@@ -8,7 +8,7 @@ public class Zwierze : BaseModel
     private string _rasa = string.Empty;
     private AnimalStatus _status = AnimalStatus.Unknown;
     private string _zdjecie = string.Empty;
-    
+
     // --- NOWE POLA ---
     private string _wiek = string.Empty;
     private string _historiaMedyczna = string.Empty;
@@ -17,8 +17,11 @@ public class Zwierze : BaseModel
     // Domyślnie false, żeby nie psuć istniejących danych.
     private bool _isArchived;
 
+    // Data archiwizacji (UTC). Null oznacza, że zwierzę nie jest w archiwum.
+    private DateTime? _archivedAt;
+
     // Właściwości publiczne z powiadomieniami (OnPropertyChanged)
-    
+
     public string Imie
     {
         get => _imie;
@@ -27,7 +30,7 @@ public class Zwierze : BaseModel
             if (_imie != value)
             {
                 _imie = value;
-                OnPropertyChanged(); 
+                OnPropertyChanged();
             }
         }
     }
@@ -161,6 +164,23 @@ public class Zwierze : BaseModel
             if (_isArchived != value)
             {
                 _isArchived = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Kiedy zwierzę zostało zarchiwizowane (soft delete).
+    /// Używamy UTC, żeby dane były jednoznaczne niezależnie od strefy czasowej.
+    /// </summary>
+    public DateTime? ArchivedAt
+    {
+        get => _archivedAt;
+        set
+        {
+            if (_archivedAt != value)
+            {
+                _archivedAt = value;
                 OnPropertyChanged();
             }
         }

@@ -1,6 +1,5 @@
-using System.Collections.ObjectModel;
-using ShelterManager.Data;
 using ShelterManager.Models;
+using System.Collections.ObjectModel;
 
 namespace ShelterManager.Data.Repositories;
 

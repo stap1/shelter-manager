@@ -1,5 +1,5 @@
-using System.Collections.ObjectModel;
 using ShelterManager.Models;
+using System.Collections.ObjectModel;
 
 namespace ShelterManager.Data;
 
@@ -9,10 +9,11 @@ namespace ShelterManager.Data;
 /// </summary>
 internal sealed class ShelterDbDto
 {
-    public int SchemaVersion { get; set; } = 2;
+    public int SchemaVersion { get; set; } = 3;
 
     public ObservableCollection<Zwierze> Animals { get; set; } = new();
     public ObservableCollection<Cage> Cages { get; set; } = new();
     public ObservableCollection<Zasob> Resources { get; set; } = new();
+    public ObservableCollection<InventoryTransaction> InventoryTransactions { get; set; } = new();
     public ObservableCollection<Zadanie> Tasks { get; set; } = new();
 }

@@ -1,6 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Maui; // Wymaga zainstalowanego pakietu CommunityToolkit.Maui
 using Microsoft.Extensions.Logging;
-using CommunityToolkit.Maui; // Wymaga zainstalowanego pakietu CommunityToolkit.Maui
 using ShelterManager.Data;
 using ShelterManager.Data.Repositories;
 using ShelterManager.Infrastructure;
@@ -16,7 +15,7 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             // To naprawia błędy inicjalizacji Toolkitu przy starcie
-            .UseMauiCommunityToolkit() 
+            .UseMauiCommunityToolkit()
             .ConfigureFonts(fonts =>
             {
                 // Upewnij się, że te pliki istnieją w Resources/Fonts!
@@ -35,6 +34,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IAnimalRepository, AnimalFileRepository>();
         builder.Services.AddSingleton<ICageRepository, CageFileRepository>();
         builder.Services.AddSingleton<IResourceRepository, ResourceFileRepository>();
+        builder.Services.AddSingleton<IInventoryTransactionRepository, InventoryTransactionFileRepository>();
         builder.Services.AddSingleton<ITaskRepository, TaskFileRepository>();
 
         // Serwisy domenowe

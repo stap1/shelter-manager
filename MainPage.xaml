@@ -138,7 +138,7 @@
                                 </Grid>
                                 <FlyoutBase.ContextFlyout>
                                     <MenuFlyout>
-                                        <MenuFlyoutItem Text="Usuń zwierzaka" Clicked="OnDeleteClicked" CommandParameter="{Binding .}" />
+                                        <MenuFlyoutItem Text="Archiwizuj" Clicked="OnDeleteClicked" CommandParameter="{Binding .}" />
                                     </MenuFlyout>
                                 </FlyoutBase.ContextFlyout>
                             </Border>

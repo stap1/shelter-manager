@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:ShelterManager.Models"
+             x:Class="ShelterManager.ArchivePage"
+             x:Name="ArchivePageRoot"
+             Title="Archiwum"
+             BackgroundColor="#F4F7FA">
+
+    <Grid RowDefinitions="Auto, Auto, *" Padding="20,10" RowSpacing="20" MaximumWidthRequest="1000" HorizontalOptions="Center">
+
+        <VerticalStackLayout Grid.Row="0" Margin="0,20,0,0" Spacing="5">
+            <Label Text="ARCHIWUM" FontSize="32" FontAttributes="Bold" TextColor="#1A237E" HorizontalOptions="Center" CharacterSpacing="1"/>
+            <Label Text="Zarchiwizowane zwierzęta (soft delete)" FontSize="16" TextColor="#5C6BC0" HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+
+        <Border Grid.Row="1" Padding="15,0" StrokeShape="RoundRectangle 30" HeightRequest="50" BackgroundColor="White" StrokeThickness="0">
+            <Border.Shadow>
+                <Shadow Brush="#5C6BC0" Offset="0,4" Opacity="0.15" Radius="10"/>
+            </Border.Shadow>
+            <Grid ColumnDefinitions="Auto, *">
+                <Label Text="🔍" VerticalOptions="Center" FontSize="18" Margin="0,0,10,0" Opacity="0.5"/>
+                <SearchBar x:Name="SearchBarArchiwum"
+                           Grid.Column="1"
+                           Placeholder="Szukaj po imieniu..."
+                           TextChanged="OnSearchTextChanged"
+                           BackgroundColor="Transparent"
+                           CancelButtonColor="Gray"
+                           VerticalOptions="Center"
+                           FontSize="16"/>
+            </Grid>
+        </Border>
+
+        <CollectionView Grid.Row="2"
+                        ItemsSource="{Binding FilteredArchivedAnimals}"
+                        SelectionMode="None">
+
+            <CollectionView.EmptyView>
+                <Grid Padding="0,50,0,0">
+                    <VerticalStackLayout VerticalOptions="Start" HorizontalOptions="Center" Spacing="10">
+                        <Label Text="🗃️" FontSize="60" HorizontalOptions="Center" Opacity="0.8"/>
+                        <Label Text="Archiwum jest puste" FontSize="20" TextColor="#455A64" HorizontalOptions="Center" FontAttributes="Bold"/>
+                        <Label Text="Zarchiwizowane zwierzęta pojawią się tutaj" FontSize="14" TextColor="#90A4AE" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="15"/>
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Zwierze">
+                    <Grid Padding="5">
+                        <Border StrokeShape="RoundRectangle 25" StrokeThickness="0" BackgroundColor="White" HeightRequest="150">
+                            <Border.Shadow>
+                                <Shadow Brush="#455A64" Offset="0,4" Opacity="0.1" Radius="15"/>
+                            </Border.Shadow>
+                            <Grid ColumnDefinitions="130, *, Auto">
+                                <Grid Grid.Column="0">
+                                    <BoxView Color="#F5F5F5"/>
+                                    <ActivityIndicator IsRunning="True" Color="#2196F3" Scale="0.5"/>
+                                    <Image Source="{Binding Zdjecie}" Aspect="AspectFill" HorizontalOptions="Fill" VerticalOptions="Fill"/>
+                                </Grid>
+
+                                <VerticalStackLayout Grid.Column="1" Padding="20,15" VerticalOptions="Center" Spacing="4">
+                                    <Label Text="{Binding Imie}" FontSize="20" FontAttributes="Bold" TextColor="#263238"/>
+                                    <Label Text="{Binding GatunekOpis}" FontSize="14" TextColor="#78909C"/>
+                                    <Label Text="{Binding Rasa}" FontSize="14" TextColor="#78909C"/>
+
+                                    <HorizontalStackLayout Spacing="10" Margin="0,6,0,0">
+                                        <Border StrokeShape="RoundRectangle 8" StrokeThickness="0" BackgroundColor="{Binding Status, Converter={StaticResource StatusToColorConverter}}" Padding="10,4">
+                                            <Label Text="{Binding StatusOpis}" TextColor="White" FontSize="11" FontAttributes="Bold" TextTransform="Uppercase"/>
+                                        </Border>
+                                        <Label Text="{Binding ArchivedAt, StringFormat='Zarchiwizowano: {0:yyyy-MM-dd HH:mm}'}" FontSize="11" TextColor="#90A4AE" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+
+                                <Label Grid.Column="2" Text="&#8942;" FontSize="28" TextColor="#CFD8DC" VerticalOptions="Start" Padding="0,10,15,0"/>
+                            </Grid>
+
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="Przywróć" Clicked="OnRestoreClicked" CommandParameter="{Binding .}" />
+                                    <!-- MenuFlyoutItem w MAUI nie udostępnia IsVisible (XAML compile error).
+                                         Blokujemy akcję dla nie-Admina przez IsEnabled + dodatkową walidację w kodzie. -->
+                                    <MenuFlyoutItem Text="Usuń trwale" Clicked="OnHardDeleteClicked" CommandParameter="{Binding .}"
+                                                   IsEnabled="{Binding Source={x:Reference ArchivePageRoot}, Path=IsAdmin}" />
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+</ContentPage>
