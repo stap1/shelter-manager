@@ -158,26 +158,7 @@ public partial class ManageCagesPage : ContentPage
 
     private void SortCages()
     {
-        // ObservableCollection nie ma wbudowanego sortowania.
-        // Czyścimy i odtwarzamy kolejność (UI zostanie odświeżone).
-        var sorted = Cages.OrderBy(c => c.Numer).ToList();
-        if (sorted.Count != Cages.Count)
-            return;
-
-        bool alreadySorted = true;
-        for (int i = 0; i < sorted.Count; i++)
-        {
-            if (!ReferenceEquals(sorted[i], Cages[i]))
-            {
-                alreadySorted = false;
-                break;
-            }
-        }
-
-        if (alreadySorted) return;
-
-        Cages.Clear();
-        foreach (var c in sorted)
-            Cages.Add(c);
+        // Sortujemy w miejscu bez Clear() (mniej migotania i mniej operacji na UI).
+        Cages.SortBy(c => c.Numer);
     }
 }

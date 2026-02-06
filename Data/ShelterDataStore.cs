@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Newtonsoft.Json;
+using ShelterManager.Infrastructure;
 using ShelterManager.Models;
 
 namespace ShelterManager.Data;
@@ -13,6 +14,10 @@ namespace ShelterManager.Data;
 public sealed class ShelterDataStore
 {
     private readonly object _sync = new();
+
+    // Optymalizacja: jeśli plik nie zmienił się od ostatniego wczytania,
+    // Reload() może pominąć ponowną deserializację.
+    private DateTime _lastFileWriteUtc = DateTime.MinValue;
 
     private readonly string _dbFilePath;
     private readonly string _legacyAnimalsFilePath;
@@ -49,6 +54,9 @@ public sealed class ShelterDataStore
             // 2) Wczytanie nowego formatu (jeśli istnieje)
             LoadFromFile();
 
+            // Porządek danych: stabilne sortowanie pod UI
+            SortCollections();
+
             // 3) Seed danych, żeby aplikacja miała sensowny stan po pierwszym uruchomieniu
             EnsureSeedData();
 
@@ -67,15 +75,19 @@ public sealed class ShelterDataStore
     {
         lock (_sync)
         {
+            // Utrzymujemy stabilną kolejność w pliku i UI.
+            SortCollections();
+
             var dto = new ShelterDbDto
             {
-                Animals = new ObservableCollection<Zwierze>(Animals),
-                Cages = new ObservableCollection<Cage>(Cages),
-                Resources = new ObservableCollection<Zasob>(Resources),
-                InventoryTransactions = new ObservableCollection<InventoryTransaction>(InventoryTransactions),
-                Tasks = new ObservableCollection<Zadanie>(Tasks),
-                AnimalEvents = new ObservableCollection<AnimalEvent>(AnimalEvents),
-                AdoptionApplications = new ObservableCollection<AdoptionApplication>(AdoptionApplications),
+                // Optymalizacja: nie kopiujemy kolekcji, bo i tak zapis jest pod lockiem.
+                Animals = Animals,
+                Cages = Cages,
+                Resources = Resources,
+                InventoryTransactions = InventoryTransactions,
+                Tasks = Tasks,
+                AnimalEvents = AnimalEvents,
+                AdoptionApplications = AdoptionApplications,
                 SchemaVersion = 6
             };
 
@@ -83,6 +95,9 @@ public sealed class ShelterDataStore
             {
                 var json = JsonConvert.SerializeObject(dto, Formatting.Indented);
                 File.WriteAllText(_dbFilePath, json);
+
+                if (File.Exists(_dbFilePath))
+                    _lastFileWriteUtc = File.GetLastWriteTimeUtc(_dbFilePath);
             }
             catch (Exception ex)
             {
@@ -95,8 +110,20 @@ public sealed class ShelterDataStore
     {
         lock (_sync)
         {
-            LoadFromFile();
+            // Jeśli plik nie zmienił się od poprzedniego wczytania,
+            // omijamy ciężką deserializację i tylko odświeżamy powiązania.
+            DateTime currentWriteUtc = File.Exists(_dbFilePath)
+                ? File.GetLastWriteTimeUtc(_dbFilePath)
+                : DateTime.MinValue;
+
+            if (currentWriteUtc != _lastFileWriteUtc)
+            {
+                LoadFromFile();
+                _lastFileWriteUtc = currentWriteUtc;
+            }
+
             EnsureSeedData();
+            SortCollections();
             ResolveCageOccupants();
             ResolveTaskAnimals();
             ResolveAdoptionApplicationAnimals();
@@ -122,6 +149,8 @@ public sealed class ShelterDataStore
             var json = File.ReadAllText(_dbFilePath);
             var dto = JsonConvert.DeserializeObject<ShelterDbDto>(json);
 
+            _lastFileWriteUtc = File.GetLastWriteTimeUtc(_dbFilePath);
+
             Animals.Clear();
             Cages.Clear();
             Resources.Clear();
@@ -144,6 +173,18 @@ public sealed class ShelterDataStore
         {
             Debug.WriteLine($"Błąd wczytywania bazy: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Stabilne sortowanie kolekcji pod UI.
+    /// </summary>
+    private void SortCollections()
+    {
+        // Boksy rosnąco po numerze
+        Cages.SortBy(c => c.Numer);
+
+        // Magazyn alfabetycznie po nazwie (nie skacze przy zmianie ilości)
+        Resources.SortBy(r => r.Nazwa ?? string.Empty, StringComparer.CurrentCultureIgnoreCase);
     }
 
     private void TryMigrateLegacyAnimalsFile()

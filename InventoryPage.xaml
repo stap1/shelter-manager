@@ -17,16 +17,16 @@
 
     <Grid MaximumWidthRequest="1000" HorizontalOptions="Center" RowDefinitions="Auto, *">
 
-        <VerticalStackLayout Grid.Row="0" Margin="0,30,0,25" Spacing="8">
+        <VerticalStackLayout Grid.Row="0" Margin="{OnIdiom Phone='0,16,0,12', Tablet='0,30,0,25', Desktop='0,30,0,25'}" Spacing="8">
             <Label Text="MAGAZYN" 
-                   FontSize="32" 
+                   FontSize="{OnIdiom Phone=24, Tablet=32, Desktop=32}" 
                    FontAttributes="Bold" 
                    TextColor="#1A237E" 
                    HorizontalOptions="Center" 
                    CharacterSpacing="1"/>
 
             <Label Text="Zarządzanie zapasami i karmą" 
-                   FontSize="16" 
+                   FontSize="{OnIdiom Phone=13, Tablet=16, Desktop=16}" 
                    TextColor="#7986CB" 
                    HorizontalOptions="Center"/>
         </VerticalStackLayout>
@@ -34,40 +34,83 @@
         <CollectionView Grid.Row="1" 
                         x:Name="ListaZasobow"
                         ItemsSource="{Binding Zasoby}" 
-                        Margin="20,0,20,20">
+                        Margin="{OnIdiom Phone='12,0,12,12', Tablet='20,0,20,20', Desktop='20,0,20,20'}">
 
             <CollectionView.ItemsLayout>
-                <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="20" VerticalItemSpacing="20"/>
+                <GridItemsLayout x:Name="InventoryGridLayout"
+                                 Orientation="Vertical" 
+                                 Span="2" 
+                                 HorizontalItemSpacing="20" 
+                                 VerticalItemSpacing="20"/>
             </CollectionView.ItemsLayout>
 
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Zasob">
                     <Border StrokeShape="RoundRectangle 25" 
                             BackgroundColor="White" 
-                            StrokeThickness="0" 
-                            HeightRequest="160">
+                            StrokeThickness="0"
+                            MinimumHeightRequest="{OnIdiom Phone=190, Tablet=200, Desktop=200}">
 
                         <Border.Shadow>
                             <Shadow Brush="#546E7A" Offset="0,5" Opacity="0.15" Radius="15"/>
                         </Border.Shadow>
 
-                        <Grid RowDefinitions="Auto, *, Auto" Padding="15">
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" Padding="15" RowSpacing="10">
 
-                            <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto">
-                                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                                    <Border StrokeShape="RoundRectangle 12" BackgroundColor="#E3F2FD" StrokeThickness="0" Padding="8">
-                                        <Label Text="📦" FontSize="18"/>
-                                    </Border>
-                                    <Label Text="{Binding Nazwa}" 
-                                           FontSize="15" 
-                                           FontAttributes="Bold" 
-                                           TextColor="#37474F" 
-                                           LineBreakMode="TailTruncation"
-                                           VerticalOptions="Center"
-                                           MaxLines="2"/>
-                                </HorizontalStackLayout>
+                            <!-- Nagłówek karty: ikona + nazwa + status + akcje
+                                 Uwaga: rozbijamy na osobne kolumny (Auto,*,Auto,Auto,Auto), aby długie nazwy
+                                 nie "wchodziły" pod badge i przyciski. IsClippedToBounds wymusza poprawne obcięcie. -->
+                            <Grid Grid.Row="0"
+                                  ColumnDefinitions="Auto,*,Auto,Auto,Auto"
+                                  ColumnSpacing="10"
+                                  IsClippedToBounds="True">
 
-                                <Button Grid.Column="1"
+                                <Border Grid.Column="0" StrokeShape="RoundRectangle 12" BackgroundColor="#E3F2FD" StrokeThickness="0" Padding="8" VerticalOptions="Center">
+                                    <Label Text="📦" FontSize="18"/>
+                                </Border>
+
+                                <Label Grid.Column="1"
+                                       Text="{Binding Nazwa}"
+                                       FontSize="{OnIdiom Phone=14, Tablet=15, Desktop=15}"
+                                       FontAttributes="Bold"
+                                       TextColor="#37474F"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="1"
+                                       HorizontalOptions="Fill"
+                                       VerticalOptions="Center"/>
+
+                                <Border Grid.Column="2"
+                                        StrokeShape="RoundRectangle 10"
+                                        StrokeThickness="0"
+                                        Padding="8,4"
+                                        BackgroundColor="#E8F5E9"
+                                        VerticalOptions="Center">
+                                    <Label Text="{Binding Status}"
+                                           FontSize="10"
+                                           FontAttributes="Bold"
+                                           TextTransform="Uppercase"
+                                           TextColor="#2E7D32">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Ilosc}" Value="0">
+                                                <Setter Property="TextColor" Value="#C62828"/>
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsLowStock}" Value="True">
+                                                <Setter Property="TextColor" Value="#EF6C00"/>
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border" Binding="{Binding Ilosc}" Value="0">
+                                            <Setter Property="BackgroundColor" Value="#FFEBEE"/>
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsLowStock}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="#FFF3E0"/>
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                </Border>
+
+                                <Button Grid.Column="3"
                                         Text="⚙"
                                         Clicked="OnEditThresholdClicked"
                                         CommandParameter="{Binding .}"
@@ -78,9 +121,9 @@
                                         WidthRequest="30"
                                         Padding="0"
                                         HorizontalOptions="End"
-                                        VerticalOptions="Start"/>
+                                        VerticalOptions="Center"/>
 
-                                <Button Grid.Column="2"
+                                <Button Grid.Column="4"
                                         Text="✕"
                                         Clicked="OnDeleteClicked"
                                         CommandParameter="{Binding .}"
@@ -91,24 +134,49 @@
                                         WidthRequest="30"
                                         Padding="0"
                                         HorizontalOptions="End"
-                                        VerticalOptions="Start"/>
+                                        VerticalOptions="Center"/>
+
                             </Grid>
 
-                            <Label Grid.Row="1" 
-                                   Text="{Binding Ilosc}" 
-                                   FontSize="40" 
-                                   FontAttributes="Bold" 
-                                   TextColor="#1565C0" 
-                                   HorizontalOptions="Center" 
-                                   VerticalOptions="Center">
-                                <Label.Triggers>
-                                    <DataTrigger TargetType="Label" Binding="{Binding Ilosc}" Value="0">
-                                        <Setter Property="TextColor" Value="#EF5350"/>
-                                    </DataTrigger>
-                                </Label.Triggers>
+                            <!-- Ilość + jednostka -->
+                            <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,*" ColumnSpacing="6">
+                                <Label Text="{Binding Ilosc, StringFormat='{0:0.##}'}" 
+                                       FontSize="{OnIdiom Phone=30, Tablet=40, Desktop=40}" 
+                                       FontAttributes="Bold" 
+                                       TextColor="#1565C0"
+                                       VerticalOptions="End">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Ilosc}" Value="0">
+                                            <Setter Property="TextColor" Value="#EF5350"/>
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsLowStock}" Value="True">
+                                            <Setter Property="TextColor" Value="#F57C00"/>
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+
+                                <Label Grid.Column="1"
+                                       Text="{Binding Jednostka}"
+                                       FontSize="12"
+                                       TextColor="#78909C"
+                                       VerticalOptions="End"
+                                       Margin="0,0,0,6"/>
+                            </Grid>
+
+                            <!-- Próg niskiego stanu -->
+                            <Label Grid.Row="2" FontSize="11" TextColor="#90A4AE">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="Próg: " />
+                                        <Span Text="{Binding LowStockThreshold, StringFormat='{0:0.##}'}" />
+                                        <Span Text=" " />
+                                        <Span Text="{Binding Jednostka}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
                             </Label>
 
-                            <Grid Grid.Row="2" ColumnDefinitions="45, *, 45">
+                            <!-- Akcje ilości -->
+                            <Grid Grid.Row="3" ColumnDefinitions="45,*,45" ColumnSpacing="10">
                                 <Button Grid.Column="0" 
                                         Text="-" 
                                         Clicked="OnMinusClicked" 
@@ -117,12 +185,12 @@
                                         TextColor="#546E7A" 
                                         CornerRadius="12" 
                                         Padding="0" 
-                                        HeightRequest="40" 
+                                        HeightRequest="{OnIdiom Phone=36, Tablet=40, Desktop=40}" 
                                         FontAttributes="Bold" 
                                         FontSize="18"/>
 
                                 <Label Grid.Column="1" 
-                                       Text="szt." 
+                                       Text="{Binding Jednostka}" 
                                        FontSize="12" 
                                        TextColor="#B0BEC5" 
                                        HorizontalOptions="Center" 
@@ -137,7 +205,7 @@
                                         TextColor="#1565C0" 
                                         CornerRadius="12" 
                                         Padding="0" 
-                                        HeightRequest="40" 
+                                        HeightRequest="{OnIdiom Phone=36, Tablet=40, Desktop=40}" 
                                         FontAttributes="Bold" 
                                         FontSize="18"/>
                             </Grid>
@@ -150,15 +218,15 @@
         <Button Grid.Row="1"
                 Text="+" 
                 Clicked="OnAddTypeClicked"
-                FontSize="36"
+                FontSize="{OnIdiom Phone=32, Tablet=36, Desktop=36}"
                 TextColor="White"
                 Background="{StaticResource FabGradient}"
                 CornerRadius="35"
-                WidthRequest="70"
-                HeightRequest="70"
+                WidthRequest="{OnIdiom Phone=60, Tablet=70, Desktop=70}"
+                HeightRequest="{OnIdiom Phone=60, Tablet=70, Desktop=70}"
                 HorizontalOptions="End"
                 VerticalOptions="End"
-                Margin="30"
+                Margin="{OnIdiom Phone=16, Tablet=30, Desktop=30}"
                 Shadow="{Shadow Brush=#2196F3, Offset='0,8', Opacity=0.4, Radius=15}"/>
     </Grid>
 </ContentPage>

@@ -22,12 +22,33 @@ public partial class InventoryPage : ContentPage
         Zasoby = _resourceRepository.Resources;
 
         BindingContext = this;
+
+        // Responsywność: dopasuj liczbę kolumn (Span) do szerokości okna.
+        SizeChanged += OnPageSizeChanged;
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
         _resourceRepository.Reload();
+
+        // Stabilna kolejność po nazwie (łatwiejsze wyszukiwanie na małych ekranach).
+        Zasoby.SortBy(z => z.Nazwa ?? string.Empty, StringComparer.CurrentCultureIgnoreCase);
+        ApplyResponsiveSpan(Width);
+    }
+
+    private void OnPageSizeChanged(object? sender, EventArgs e)
+    {
+        ApplyResponsiveSpan(Width);
+    }
+
+    private void ApplyResponsiveSpan(double pageWidth)
+    {
+        if (pageWidth <= 0 || InventoryGridLayout is null) return;
+
+        int span = pageWidth < 650 ? 1 : pageWidth < 950 ? 2 : 3;
+        if (InventoryGridLayout.Span != span)
+            InventoryGridLayout.Span = span;
     }
 
     // Obsługa przycisku "-" (w XAML: OnMinusClicked)
@@ -81,7 +102,7 @@ public partial class InventoryPage : ContentPage
             });
 
             _resourceRepository.SaveChanges();
-            OdswiezListe();
+            // Zasob implementuje INotifyPropertyChanged, więc UI odświeża się automatycznie.
 
             // Powiadomienie: gdy spadnie poniżej progu, nie tylko do 0.
             double threshold = z.LowStockThreshold;
@@ -117,7 +138,7 @@ public partial class InventoryPage : ContentPage
             });
 
             _resourceRepository.SaveChanges();
-            OdswiezListe();
+            // Zasob implementuje INotifyPropertyChanged, więc UI odświeża się automatycznie.
         }
     }
 
@@ -129,9 +150,17 @@ public partial class InventoryPage : ContentPage
             bool answer = await DisplayAlert("Usuwanie", $"Czy usunąć {z.Nazwa} z magazynu?", "Tak", "Nie");
             if (answer)
             {
+                // Usuwamy zasób oraz powiązane transakcje, aby w raportach nie zostawały "osierocone" wpisy.
                 Zasoby.Remove(z);
+
+                var toRemove = _transactionRepository.Transactions
+                    .Where(t => t.ResourceId == z.Id)
+                    .ToList();
+
+                foreach (var t in toRemove)
+                    _transactionRepository.Transactions.Remove(t);
+
                 _resourceRepository.SaveChanges();
-                OdswiezListe();
             }
         }
     }
@@ -156,41 +185,102 @@ public partial class InventoryPage : ContentPage
 
             z.LowStockThreshold = prog;
             _resourceRepository.SaveChanges();
-            OdswiezListe();
         }
     }
 
     // Obsługa dużego przycisku "+" (Dodawanie nowego typu zasobu)
     private async void OnAddTypeClicked(object sender, EventArgs e)
     {
-        string nazwa = await DisplayPromptAsync("Nowy produkt", "Podaj nazwę produktu:");
-        if (!string.IsNullOrWhiteSpace(nazwa))
-        {
-            string iloscStr = await DisplayPromptAsync("Ilość", "Podaj ilość początkową:", initialValue: "0", keyboard: Keyboard.Numeric);
-            if (double.TryParse(iloscStr, out double ilosc))
-            {
-                string progStr = await DisplayPromptAsync("Próg niskiego stanu", "Przy jakiej ilości ma pojawić się ostrzeżenie?", initialValue: "10", keyboard: Keyboard.Numeric);
-                double prog = 10;
-                if (!string.IsNullOrWhiteSpace(progStr) && double.TryParse(progStr, out var parsed) && parsed >= 0)
-                    prog = parsed;
+        string nazwa = await DisplayPromptAsync("Nowy artykuł", "Podaj nazwę artykułu:");
+        if (string.IsNullOrWhiteSpace(nazwa))
+            return;
 
-                Zasoby.Add(new Zasob
-                {
-                    Nazwa = nazwa.Trim(),
-                    Ilosc = ilosc,
-                    Jednostka = "szt.",
-                    LowStockThreshold = prog
-                });
-                _resourceRepository.SaveChanges();
+        nazwa = nazwa.Trim();
+
+        // Walidacja: unikamy duplikatów nazwy (UX) i literówek.
+        var existing = Zasoby.FirstOrDefault(r => string.Equals(r.Nazwa, nazwa, StringComparison.CurrentCultureIgnoreCase));
+        if (existing is not null)
+        {
+            bool addToExisting = await DisplayAlert(
+                "Już istnieje",
+                $"Artykuł '{nazwa}' już jest w magazynie. Czy dodać ilość do istniejącej pozycji?",
+                "Tak",
+                "Nie");
+
+            if (!addToExisting)
+                return;
+
+            string deltaStr = await DisplayPromptAsync("Ilość", "O ile zwiększyć stan?", initialValue: "1", keyboard: Keyboard.Numeric);
+            if (!double.TryParse(deltaStr, out double delta) || delta <= 0)
+            {
+                await DisplayAlert("Błąd", "Podaj poprawną ilość (> 0).", "OK");
+                return;
+            }
+
+            existing.Ilosc += delta;
+            _transactionRepository.Transactions.Add(new InventoryTransaction
+            {
+                ResourceId = existing.Id,
+                Delta = delta,
+                Reason = "Uzupełnienie ręczne (dodanie pozycji istniejącej)",
+                Timestamp = DateTime.UtcNow
+            });
+
+            _resourceRepository.SaveChanges();
+            return;
+        }
+
+        string jednostka = await DisplayPromptAsync("Jednostka", "Podaj jednostkę (np. szt., kg, l):", initialValue: "szt.");
+        if (string.IsNullOrWhiteSpace(jednostka))
+            jednostka = "szt.";
+        jednostka = jednostka.Trim();
+
+        string iloscStr = await DisplayPromptAsync("Ilość", "Podaj ilość początkową:", initialValue: "0", keyboard: Keyboard.Numeric);
+        if (!double.TryParse(iloscStr, out double ilosc) || ilosc < 0)
+        {
+            await DisplayAlert("Błąd", "Podaj poprawną ilość (>= 0).", "OK");
+            return;
+        }
+
+        string progStr = await DisplayPromptAsync(
+            "Próg niskiego stanu",
+            "Przy jakiej ilości ma pojawić się ostrzeżenie? (0 = wyłącz)",
+            initialValue: "10",
+            keyboard: Keyboard.Numeric);
+
+        double prog = 10;
+        if (!string.IsNullOrWhiteSpace(progStr))
+        {
+            if (!double.TryParse(progStr, out prog) || prog < 0)
+            {
+                await DisplayAlert("Błąd", "Podaj poprawną wartość progu (>= 0).", "OK");
+                return;
             }
         }
-    }
 
-    // Pomocnicza metoda do wymuszenia odświeżenia widoku (czasem potrzebna w MAUI przy zmianach wewnątrz obiektów)
-    private void OdswiezListe()
-    {
-        var temp = ListaZasobow.ItemsSource;
-        ListaZasobow.ItemsSource = null;
-        ListaZasobow.ItemsSource = temp;
+        var nowy = new Zasob
+        {
+            Nazwa = nazwa,
+            Ilosc = ilosc,
+            Jednostka = jednostka,
+            LowStockThreshold = prog
+        };
+
+        Zasoby.Add(nowy);
+
+        if (ilosc > 0)
+        {
+            _transactionRepository.Transactions.Add(new InventoryTransaction
+            {
+                ResourceId = nowy.Id,
+                Delta = ilosc,
+                Reason = "Dodanie nowego artykułu (stan początkowy)",
+                Timestamp = DateTime.UtcNow
+            });
+        }
+
+        // Stabilna kolejność alfabetyczna.
+        Zasoby.SortBy(z => z.Nazwa ?? string.Empty, StringComparer.CurrentCultureIgnoreCase);
+        _resourceRepository.SaveChanges();
     }
 }

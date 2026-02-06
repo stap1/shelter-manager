@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using ShelterManager.Data;
+using ShelterManager.Infrastructure;
 using ShelterManager.Models;
 
 namespace ShelterManager.Data.Repositories;
@@ -22,6 +23,8 @@ public sealed class CageFileRepository : ICageRepository
     {
         if (cage is null) return;
         _store.Cages.Add(cage);
+        // Utrzymujemy kolejność rosnącą po numerze.
+        _store.Cages.SortBy(c => c.Numer);
         _store.SaveChanges();
     }
 
@@ -34,7 +37,11 @@ public sealed class CageFileRepository : ICageRepository
             return false;
 
         bool removed = _store.Cages.Remove(cage);
-        if (removed) _store.SaveChanges();
+        if (removed)
+        {
+            _store.Cages.SortBy(c => c.Numer);
+            _store.SaveChanges();
+        }
         return removed;
     }
 

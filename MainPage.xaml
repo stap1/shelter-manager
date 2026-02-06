@@ -27,24 +27,24 @@
               RowDefinitions="Auto, Auto, Auto, *" 
               MaximumWidthRequest="1000" 
               HorizontalOptions="Center"
-              Padding="20,10"
+              Padding="{OnIdiom Phone='12,8', Tablet='20,10', Desktop='20,10'}"
               RowSpacing="20">
 
             <VerticalStackLayout Grid.Row="0" Margin="0,20,0,0" Spacing="5">
                 <Label Text="STAN SCHRONISKA" 
-                       FontSize="32" 
+                       FontSize="{OnIdiom Phone=24, Tablet=32, Desktop=32}" 
                        FontAttributes="Bold" 
                        TextColor="#1A237E" 
                        HorizontalOptions="Center"
                        CharacterSpacing="1"/>
                 <Label Text="Panel zarządzania i ewidencja podopiecznych" 
-                       FontSize="16" 
+                       FontSize="{OnIdiom Phone=13, Tablet=16, Desktop=16}" 
                        TextColor="#5C6BC0" 
                        HorizontalOptions="Center"/>
             </VerticalStackLayout>
 
-            <Grid Grid.Row="1" ColumnDefinitions="*, *" ColumnSpacing="20">
-                <Border Grid.Column="0" BackgroundColor="White" Padding="15" StrokeShape="RoundRectangle 20" StrokeThickness="0" HeightRequest="100">
+            <Grid Grid.Row="1" ColumnDefinitions="*, *" ColumnSpacing="{OnIdiom Phone=12, Tablet=20, Desktop=20}">
+                <Border Grid.Column="0" BackgroundColor="White" Padding="15" StrokeShape="RoundRectangle 20" StrokeThickness="0" HeightRequest="{OnIdiom Phone=90, Tablet=100, Desktop=100}">
                     <Border.Shadow>
                         <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.2" Radius="10"/>
                     </Border.Shadow>
@@ -59,7 +59,7 @@
                     </HorizontalStackLayout>
                 </Border>
 
-                <Border Grid.Column="1" BackgroundColor="White" Padding="15" StrokeShape="RoundRectangle 20" StrokeThickness="0" HeightRequest="100">
+                <Border Grid.Column="1" BackgroundColor="White" Padding="15" StrokeShape="RoundRectangle 20" StrokeThickness="0" HeightRequest="{OnIdiom Phone=90, Tablet=100, Desktop=100}">
                     <Border.Shadow>
                         <Shadow Brush="#90A4AE" Offset="0,4" Opacity="0.2" Radius="10"/>
                     </Border.Shadow>
@@ -75,7 +75,7 @@
                 </Border>
             </Grid>
 
-            <Border Grid.Row="2" Margin="0,0,0,20" Padding="15,0" StrokeShape="RoundRectangle 30" HeightRequest="50" BackgroundColor="White" StrokeThickness="0">
+            <Border Grid.Row="2" Margin="0,0,0,20" Padding="15,0" StrokeShape="RoundRectangle 30" HeightRequest="{OnIdiom Phone=46, Tablet=50, Desktop=50}" BackgroundColor="White" StrokeThickness="0">
                 <Border.Shadow>
                     <Shadow Brush="#5C6BC0" Offset="0,4" Opacity="0.15" Radius="10"/>
                 </Border.Shadow>
@@ -88,7 +88,7 @@
                                BackgroundColor="Transparent"
                                CancelButtonColor="Gray"
                                VerticalOptions="Center"
-                               FontSize="16"/>
+                               FontSize="{OnIdiom Phone=14, Tablet=16, Desktop=16}"/>
                 </Grid>
             </Border>
 
