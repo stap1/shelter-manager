@@ -30,7 +30,7 @@ Aplikacja mobilna/desktopowa stworzona w technologii **.NET MAUI** do kompleksow
 
 2.  **Instalacja**:
     ```bash
-    git clone [LINK_DO_TWOJEGO_REPOZYTORIUM]
+    git clone (https://github.com/matidamixer/ShelterManager-main)
     cd ShelterManager
     ```
 
