@@ -45,10 +45,12 @@ public sealed class ShelterDataStore
     {
         lock (_sync)
         {
+            bool hadDatabase = File.Exists(_dbFilePath);
+
             // 1) Migracja, jeśli nie mamy nowego pliku, ale mamy stary
-            if (!File.Exists(_dbFilePath) && File.Exists(_legacyAnimalsFilePath))
+            if (!hadDatabase && File.Exists(_legacyAnimalsFilePath))
             {
-                TryMigrateLegacyAnimalsFile();
+                hadDatabase = TryMigrateLegacyAnimalsFile();
             }
 
             // 2) Wczytanie nowego formatu (jeśli istnieje)
@@ -57,8 +59,11 @@ public sealed class ShelterDataStore
             // Porządek danych: stabilne sortowanie pod UI
             SortCollections();
 
-            // 3) Seed danych, żeby aplikacja miała sensowny stan po pierwszym uruchomieniu
-            EnsureSeedData();
+            // 3) Seed danych startowych TYLKO przy pierwszym uruchomieniu (brak bazy).
+            //    Nigdy przy pustej kolekcji - inaczej rekordy usunięte przez użytkownika
+            //    "wracałyby" po restarcie.
+            if (!hadDatabase)
+                EnsureSeedData();
 
             // 4) Powiązanie klatek z obiektami zwierząt na podstawie LokatorId
             ResolveCageOccupants();
@@ -122,7 +127,8 @@ public sealed class ShelterDataStore
                 _lastFileWriteUtc = currentWriteUtc;
             }
 
-            EnsureSeedData();
+            // Uwaga: NIE seedujemy przy Reload - seed jest wyłącznie pierwszorazowy
+            // (w Initialize). Inaczej opróżnione kolekcje "odtwarzałyby się".
             SortCollections();
             ResolveCageOccupants();
             ResolveTaskAnimals();
@@ -187,7 +193,7 @@ public sealed class ShelterDataStore
         Resources.SortBy(r => r.Nazwa ?? string.Empty, StringComparer.CurrentCultureIgnoreCase);
     }
 
-    private void TryMigrateLegacyAnimalsFile()
+    private bool TryMigrateLegacyAnimalsFile()
     {
         try
         {
@@ -213,10 +219,12 @@ public sealed class ShelterDataStore
 
             var newJson = JsonConvert.SerializeObject(dto, Formatting.Indented);
             File.WriteAllText(_dbFilePath, newJson);
+            return true;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Błąd migracji shelter_data.json -> shelter_db.json: {ex.Message}");
+            return false;
         }
     }
 
@@ -230,29 +238,29 @@ public sealed class ShelterDataStore
             Animals.Add(new Zwierze
             {
                 Imie = "Burek",
-				Gatunek = AnimalSpecies.Dog,
+                Gatunek = AnimalSpecies.Dog,
                 Rasa = "Owczarek",
-				Status = AnimalStatus.Quarantine,
-                Zdjecie = "https://loremflickr.com/400/400/dog,owczarek?lock=1",
+                Status = AnimalStatus.Quarantine,
+                Zdjecie = "https://loremflickr.com/400/400/dog,germanshepherd?lock=1",
                 Wiek = "Nieznany",
                 HistoriaMedyczna = "Brak wpisów"
             });
             Animals.Add(new Zwierze
             {
                 Imie = "Mruczek",
-				Gatunek = AnimalSpecies.Cat,
+                Gatunek = AnimalSpecies.Cat,
                 Rasa = "Dachowiec",
-				Status = AnimalStatus.Quarantine,
-                Zdjecie = "https://loremflickr.com/400/400/cat,dachowiec?lock=2",
+                Status = AnimalStatus.Quarantine,
+                Zdjecie = "https://loremflickr.com/400/400/cat?lock=2",
                 Wiek = "Nieznany",
                 HistoriaMedyczna = "Brak wpisów"
             });
             Animals.Add(new Zwierze
             {
                 Imie = "Reksio",
-				Gatunek = AnimalSpecies.Dog,
+                Gatunek = AnimalSpecies.Dog,
                 Rasa = "Labrador",
-				Status = AnimalStatus.ForAdoption,
+                Status = AnimalStatus.ForAdoption,
                 Zdjecie = "https://loremflickr.com/400/400/dog,labrador?lock=3",
                 Wiek = "Nieznany",
                 HistoriaMedyczna = "Brak wpisów"
@@ -265,8 +273,8 @@ public sealed class ShelterDataStore
         // Lista boksów jest przechowywana w danych (shelter_db.json), zamiast generować ją "na żywo".
         if (Cages.Count == 0)
         {
-			var mieszkancy = Animals
-				.Where(z => z.Status != AnimalStatus.Adopted && !z.IsArchived)
+            var mieszkancy = Animals
+                .Where(z => z.Status != AnimalStatus.Adopted && !z.IsArchived)
                 .ToList();
 
             for (int i = 1; i <= 10; i++)
@@ -333,7 +341,7 @@ public sealed class ShelterDataStore
         // Powiązanie OccupiedAnimalIds z obiektami zwierząt na potrzeby UI.
         // Lista OccupiedAnimals jest [JsonIgnore], więc po wczytaniu wymaga ponownego wypełnienia.
         var byId = Animals.ToDictionary(a => a.Id, a => a);
-		bool changed = false;
+        bool changed = false;
 
         foreach (var cage in Cages)
         {
@@ -341,23 +349,23 @@ public sealed class ShelterDataStore
 
             foreach (var animalId in cage.OccupiedAnimalIds.ToList())
             {
-				if (!byId.TryGetValue(animalId, out var animal))
-				{
-					// Usuwamy "wiszące" Id (zwierzę usunięte z bazy).
-					cage.OccupiedAnimalIds.Remove(animalId);
-					changed = true;
-					continue;
-				}
+                if (!byId.TryGetValue(animalId, out var animal))
+                {
+                    // Usuwamy "wiszące" Id (zwierzę usunięte z bazy).
+                    cage.OccupiedAnimalIds.Remove(animalId);
+                    changed = true;
+                    continue;
+                }
 
-				// Zasady biznesowe: Adopted/Archived nie powinny zajmować boksów.
-				if (animal.Status == AnimalStatus.Adopted || animal.IsArchived)
-				{
-					cage.OccupiedAnimalIds.Remove(animalId);
-					changed = true;
-					continue;
-				}
+                // Zasady biznesowe: Adopted/Archived nie powinny zajmować boksów.
+                if (animal.Status == AnimalStatus.Adopted || animal.IsArchived)
+                {
+                    cage.OccupiedAnimalIds.Remove(animalId);
+                    changed = true;
+                    continue;
+                }
 
-				cage.OccupiedAnimals.Add(animal);
+                cage.OccupiedAnimals.Add(animal);
             }
 
             // Zabezpieczenie: jeśli ktoś ustawi pojemność < 1 w JSON, normalizujemy.
@@ -365,9 +373,9 @@ public sealed class ShelterDataStore
                 cage.Capacity = 1;
         }
 
-		// Jeśli podczas wiązania wykryliśmy nieprawidłowe przydziały, zapisujemy poprawki.
-		if (changed)
-			SaveChanges();
+        // Jeśli podczas wiązania wykryliśmy nieprawidłowe przydziały, zapisujemy poprawki.
+        if (changed)
+            SaveChanges();
     }
 
     private void ResolveTaskAnimals()
